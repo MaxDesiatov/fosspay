@@ -1,0 +1,22 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+stripe = "*"
+psycopg2 = "*"
+bcrypt = "*"
+gunicorn = "*"
+pystache = "*"
+Flask = "*"
+Jinja2 = "*"
+Flask-Misaka = "*"
+Flask-Login = "*"
+SQLAlchemy-Utils = "*"
+awscli = "*"
+
+[requires]
+python_version = "3.7"
