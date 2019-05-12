@@ -9,7 +9,7 @@ window.comment = "{{invoice.comment}}";
 const currency = "{{ _cfg("currency") }}";
 </script>
 <script src="//checkout.stripe.com/checkout.js"></script>
-<script src="../static/invoice.js"></script>
+<script src="{{root}}/static/invoice.js"></script>
 {% endblock %}
 {% block body %} 
 <div class="well">

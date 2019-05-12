@@ -35,7 +35,13 @@ def load_user(email):
 
 login_manager.anonymous_user = lambda: None
 
-app.register_blueprint(html)
+app.register_blueprint(html, url_prefix='/support')
+
+@app.after_request
+def add_header(response):    
+  if ('Cache-Control' not in response.headers):
+    response.headers['Cache-Control'] = 'private, max-age=0'
+  return response
 
 try:
     locale.setlocale(locale.LC_ALL, 'en_US')
