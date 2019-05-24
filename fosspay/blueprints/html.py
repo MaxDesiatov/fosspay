@@ -293,7 +293,7 @@ def cancel(id):
         abort(400)
     donation.active = False
     db.commit()
-    send_cancellation_notice(user, donation)
+    send_cancellation_notice(donation.user, donation)
     return redirect("../panel")
 
 @html.route("/invoice/<id>")

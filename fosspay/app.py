@@ -15,7 +15,11 @@ from fosspay.network import *
 
 from fosspay.blueprints.html import html
 
-app = Flask(__name__)
+app = Flask(
+    __name__, 
+    static_folder=os.path.join(os.getcwd(), "support/static"),
+    static_url_path='/support/static'
+)
 app.secret_key = _cfg("secret-key")
 app.jinja_env.cache = None
 init_db()
