@@ -7,6 +7,7 @@ from fosspay.common import *
 from fosspay.config import _cfg, load_config
 from fosspay.email import send_thank_you, send_password_reset
 from fosspay.email import send_new_donation, send_cancellation_notice
+from fosspay.email import send_account_deleted
 from fosspay.currency import currency
 
 import os
@@ -273,7 +274,7 @@ def reset_password(token):
         user.password_reset_expires = None
         db.commit()
         login_user(user)
-        return redirect("../panel")
+        return redirect("../support/panel")
 
 @html.route("/panel")
 @loginrequired
@@ -295,6 +296,20 @@ def cancel(id):
     db.commit()
     send_cancellation_notice(donation.user, donation)
     return redirect("../panel")
+
+
+@html.route("/deleteAccount/<id>")
+@loginrequired
+def deleteAccount(id):
+    user = User.query.filter(User.id == id)
+    # remove user donation
+    Donation.query.filter(Donation.user_id == id).delete()
+    # send warm mail 
+    send_account_deleted(user)
+    # remove user
+    user.delete()
+    db.commit()
+    return redirect("..")
 
 @html.route("/invoice/<id>")
 def invoice(id):

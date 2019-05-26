@@ -128,3 +128,24 @@ def send_cancellation_notice(user, donation):
     message['Date'] = format_datetime(localtime())
     smtp.sendmail(_cfg("smtp-from"), [ _cfg('your-email') ], message.as_string())
     smtp.quit()
+
+
+def send_account_deleted(user):
+    if _cfg("smtp-host") == "":
+        return
+    smtp = smtplib.SMTP(_cfg("smtp-host"), _cfgi("smtp-port"))
+    smtp.ehlo()
+    smtp.starttls()
+    smtp.login(_cfg("smtp-user"), _cfg("smtp-password"))
+    with open("emails/goodbye") as f:
+        message = MIMEText(html.parser.HTMLParser().unescape(
+            pystache.render(f.read(), {
+                "your_name": _cfg("your-name"),
+                "your_email": _cfg("your-email")
+            })))
+    message['Subject'] = "A warm thank you!"
+    message['From'] = _cfg("smtp-from")
+    message['To'] = user.email
+    message['Date'] = format_datetime(localtime())
+    smtp.sendmail(_cfg("smtp-from"), [user.email], message.as_string())
+    smtp.quit()
