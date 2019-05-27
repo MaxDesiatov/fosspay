@@ -274,7 +274,7 @@ def reset_password(token):
         user.password_reset_expires = None
         db.commit()
         login_user(user)
-        return redirect(absolute_link("support/panel"))
+        return redirect(absolute_link("panel"))
 
 @html.route("/panel")
 @loginrequired
