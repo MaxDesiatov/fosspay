@@ -87,13 +87,14 @@ def setup():
     email = request.form.get("email")
     password = request.form.get("password")
     if not email or not password:
-        return redirect("..") # TODO: Tell them what they did wrong (i.e. being stupid)
+        # TODO: Tell them what they did wrong (i.e. being stupid)
+        return redirect(absolute_link())
     user = User(email, password)
     user.admin = True
     db.add(user)
     db.commit()
     login_user(user)
-    return redirect("admin?first-run=1")
+    return redirect(absolute_link("admin?first-run=1"))
 
 @html.route("/admin")
 @adminrequired
@@ -125,14 +126,14 @@ def create_project():
     project = Project(name)
     db.add(project)
     db.commit()
-    return redirect("admin")
+    return redirect(absolute_link("admin"))
 
 @html.route("/login", methods=["GET", "POST"])
 def login():
     if current_user:
         if current_user.admin:
-            return redirect("admin")
-        return redirect("panel")
+            return redirect(absolute_link("admin"))
+        return redirect(absolute_link("panel"))
     if request.method == "GET":
         return render_template("login.html")
     email = request.form.get("email")
@@ -146,14 +147,14 @@ def login():
         return render_template("login.html", errors=True)
     login_user(user)
     if user.admin:
-        return redirect("admin")
-    return redirect("panel")
+        return redirect(absolute_link("admin"))
+    return redirect(absolute_link("panel"))
 
 @html.route("/logout")
 @loginrequired
 def logout():
     logout_user()
-    return redirect(_cfg("protocol") + "://" + _cfg("domain"))
+    return redirect(absolute_link())
 
 @html.route("/donate", methods=["POST"])
 @json_output
@@ -249,7 +250,7 @@ def reset_password(token):
             return issue_password_reset(email)
 
         if not token:
-            return redirect("..")
+            return redirect(absolute_link())
 
     user = User.query.filter(User.password_reset == token).first()
     if not user:
@@ -259,7 +260,7 @@ def reset_password(token):
         if user.password_reset_expires == None or user.password_reset_expires < datetime.now():
             return render_template("reset.html", errors="This link has expired.")
         if user.password_reset != token:
-            redirect("..")
+            redirect(absolute_link())
         return render_template("reset.html", token=token)
     else:
         if user.password_reset_expires == None or user.password_reset_expires < datetime.now():
@@ -274,7 +275,7 @@ def reset_password(token):
         user.password_reset_expires = None
         db.commit()
         login_user(user)
-        return redirect("../support/panel")
+        return redirect(absolute_link("support/panel"))
 
 @html.route("/panel")
 @loginrequired
@@ -295,7 +296,7 @@ def cancel(id):
     donation.active = False
     db.commit()
     send_cancellation_notice(donation.user, donation)
-    return redirect("../panel")
+    return redirect(absolute_link("panel"))
 
 
 @html.route("/deleteAccount/<id>")
@@ -309,7 +310,7 @@ def deleteAccount(id):
     # remove user
     user.delete()
     db.commit()
-    return redirect("..")
+    return redirect(absolute_link())
 
 @html.route("/invoice/<id>")
 def invoice(id):
