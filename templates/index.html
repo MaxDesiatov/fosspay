@@ -191,9 +191,9 @@
       >
         {% for amt in _cfg("default-amounts").split(" ") %}
         <div class="btn-group" role="group">
-          <!-- <button data-amount="{{ amt }}" type="button"
+          <button data-amount="{{ amt }}" type="button"
             class="btn btn-default {{"active" if _cfg("default-amount") == amt else ""}}"
-            >{{ currency.amount(amt) }}</button> -->
+            >{{ currency.amount(amt) }}</button>
         </div>
         {% endfor %}
         <div class="btn-group" role="group">

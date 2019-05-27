@@ -40,7 +40,7 @@ def loginrequired(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not current_user:
-            return redirect(file_link("login?return_to=" + urllib.parse.quote_plus(request.url)))
+            return redirect(absolute_link("login?return_to=" + urllib.parse.quote_plus(request.url)))
         else:
             return f(*args, **kwargs)
     return wrapper
@@ -49,7 +49,7 @@ def adminrequired(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not current_user:
-            return redirect(file_link("login?return_to=" + urllib.parse.quote_plus(request.url)))
+            return redirect(absolute_link("login?return_to=" + urllib.parse.quote_plus(request.url)))
         else:
             if not current_user.admin:
                 abort(401)
@@ -97,7 +97,7 @@ def cors(f):
 
     return wrapper
 
-def file_link(path):
+def absolute_link(path=""):
     return _cfg("protocol") + "://" + _cfg("domain") + "/" + path
 
 def disown_link(path):

@@ -80,7 +80,7 @@ def inject():
         'request': request,
         'locale': locale,
         'url_for': url_for,
-        'file_link': file_link,
+        'absolute_link': absolute_link,
         'user': current_user,
         '_cfg': _cfg,
         '_cfgi': _cfgi,
