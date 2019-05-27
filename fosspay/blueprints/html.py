@@ -87,7 +87,6 @@ def setup():
     email = request.form.get("email")
     password = request.form.get("password")
     if not email or not password:
-        # TODO: Tell them what they did wrong (i.e. being stupid)
         return redirect(absolute_link())
     user = User(email, password)
     user.admin = True
