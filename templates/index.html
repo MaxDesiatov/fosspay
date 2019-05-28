@@ -52,10 +52,10 @@
   <div id="container">
     <div id="container">
       <div id="nav-item">
-        <h1><a id="nav-link" to="/">Blog</a></h1>
+        <h1><a id="nav-link" href="{{ blog }}">Blog</a></h1>
       </div>
       <div id="nav-item">
-        <h1><a id="nav-link" to="/support">Hire Me</a></h1>
+        <h1><a id="nav-link" class="underscored" href="{{ root }}">Support my work</a></h1>
       </div>
     </div>
     <div id="links">
@@ -296,7 +296,6 @@
   </div>
 </div>
 {% include "goal.html" %}
-<hr />
 <div class="container text-center">
   {% if not user %}
   <p>
