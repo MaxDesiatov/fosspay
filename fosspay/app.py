@@ -75,6 +75,7 @@ def inject():
         'root': _cfg("protocol") + "://" + _cfg("domain"),
         'domain': _cfg("domain"),
         'protocol': _cfg("protocol"),
+        'blog': _cfg("protocol") + "://" + _cfg("blog"),
         'len': len,
         'any': any,
         'request': request,
