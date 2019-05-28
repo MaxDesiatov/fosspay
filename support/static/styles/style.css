@@ -66,11 +66,24 @@ header {
   margin-bottom: 0;
 }
 
+.underscored,
+.underscored:active,
+.underscored:hover {
+  box-shadow: 0 1px 0 0 currentColor;
+}
+
+#links:active,
+#links:hover {
+  outline-width: 0;
+  text-decoration: none;
+}
+
 #links {
   margin-top: 0.875rem;
   margin-left: 0.875rem;
   display: flex;
   justify-content: space-between;
+  box-shadow: 0;
 }
 
 #links a {
