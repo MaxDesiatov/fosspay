@@ -87,6 +87,10 @@ header {
   vertical-align: -0.125em;
 }
 
+#summary-wrapper {
+  margin-top: 2rem;
+}
+
 svg path {
   fill: #007acc;
 }
@@ -951,7 +955,6 @@ h6 {
 }
 
 a {
-  box-shadow: 0 1px 0 0 currentColor;
   color: #007acc;
   text-decoration: none;
 }
