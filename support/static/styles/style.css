@@ -72,8 +72,8 @@ header {
   box-shadow: 0 1px 0 0 currentColor;
 }
 
-#links:active,
-#links:hover {
+#nav-link:active,
+#nav-link:hover {
   outline-width: 0;
   text-decoration: none;
 }
