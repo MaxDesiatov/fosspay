@@ -295,30 +295,23 @@
     </div>
   </div>
 </div>
-{% include "goal.html" %}
 <div class="container text-center">
   {% if not user %}
   <p>
-    <small class="text-muted">
-      Been here before? <a href="login">Log in</a> to view your
-      donation history, edit recurring donations, and so on.
-    </small>
+    Been here before? <a href="login">Log in</a> to view your
+    donation history, edit recurring donations, and so on.
   </p>
   {% else %}
   <p>
-    <small class="text-muted">
-      You're currently logged in as {{ user.email }}. Your payments
-      and subscriptions can be viewed on
-      <a href="{{ root }}">the dashboard</a>.
-      <a href="logout">Log out</a>
-    </small>
+    You're currently logged in as {{ user.email }}. Your payments
+    and subscriptions can be viewed on
+    <a href="{{ root }}">the dashboard</a>.
+    <a href="logout">Log out</a>
   </p>
   {% endif %}
   <p>
-    <small class="text-muted">
-      Powered by
-      <a href="https://github.com/SirCmpwn/fosspay">fosspay</a>.
-    </small>
+    Powered by
+    <a href="https://github.com/SirCmpwn/fosspay">fosspay</a>.
   </p>
 </div>
 {% endblock %}
