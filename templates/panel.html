@@ -7,12 +7,12 @@
             <a class="btn btn-danger" href="{{root}}/deleteAccount/{{ user.id }}">Delete account</a>
             <a class="btn btn-default" href="{{root}}/logout">Log out</a>
         </p>
-        <h1>Your Donations</h1>
+        <h1>Your Sponsorship</h1>
     </div>
 </div>
 <div class="container">
     {% if any(recurring(user)) %}
-    <h2>Monthly Donations</h2>
+    <h2>Monthly Sponsorship</h2>
     <table class="table">
         <thead>
             <tr>
@@ -39,7 +39,7 @@
     </table>
     {% endif %}
     {% if any(one_times(user)) %}
-    <h2>One-time Donations</h2>
+    <h2>One-time Sponsorship</h2>
     <table class="table">
         <thead>
             <tr>

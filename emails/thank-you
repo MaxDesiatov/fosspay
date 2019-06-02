@@ -1,15 +1,15 @@
-Thank you for donating!
+Thank you for your sponsorship!
 
 Receipt:
 
 {{#monthly}}
-Monthly donation                {{amount}}
+Monthly sponsorship                {{amount}}
 {{/monthly}}
 {{^monthly}}
-One-time donation               {{amount}}
+One-time sponsorship               {{amount}}
 {{/monthly}}
 
-You can view and manage your donations online here:
+You can view and manage your sponsorship online here:
 
 {{root}}/panel
 

@@ -75,8 +75,8 @@
             key: window.stripe_key,
             image: window.avatar,
             locale: 'auto',
-            description: donation.type == "monthly" ? i18n["Monthly Donation"] : i18n["One-time Donation"],
-            panelLabel: i18n["Donate "] + "{{amount}}",
+            description: donation.type == "monthly" ? i18n["Monthly Sponsorship"] : i18n["One-time Sponsorship"],
+            panelLabel: "{{amount}}",
             amount: donation.amount,
             currency: currency,
             token: function(token) {
