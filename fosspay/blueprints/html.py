@@ -21,6 +21,17 @@ import requests
 encoding = locale.getdefaultlocale()[1]
 html = Blueprint('html', __name__, template_folder='../../templates')
 
+@html.route('/config')
+@json_output
+def get_config():
+    return {
+        'stripePublishableKey': _cfg("stripe-publish"),
+        'stripeCountry': os.getenv('STRIPE_ACCOUNT_COUNTRY') or 'US',
+        'country': 'US',
+        'currency': 'usd',
+        'paymentMethods': ['card'],
+    }
+
 @html.route("/")
 def index():
     if User.query.count() == 0:

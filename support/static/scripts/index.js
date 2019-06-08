@@ -1,5 +1,5 @@
 (function () {
-  var donation = {
+  window.donation = {
     type: window.default_type,
     amount: window.default_amount * 100, // cents
     project: null,
@@ -60,63 +60,4 @@
       }
     });
   }
-
-  document.getElementById("donate-button").addEventListener("click", function (e) {
-    e.preventDefault();
-    if (e.target.getAttribute("disabled")) {
-      return;
-    }
-
-    donation.comment = document.getElementById("comments").value;
-
-    var handler = StripeCheckout.configure({
-      name: your_name,
-      email: window.email,
-      key: window.stripe_key,
-      image: window.avatar,
-      locale: 'auto',
-      description: donation.type == "monthly" ? i18n["Monthly Donation"] : i18n["One-time Donation"],
-      panelLabel: i18n["Donate "] + "{{amount}}",
-      amount: donation.amount,
-      currency: currency,
-      token: function (token) {
-        e.target.setAttribute("disabled", "");
-        e.target.textContent = i18n["Submitting..."];
-
-        var data = new FormData();
-        data.append("stripe_token", token.id);
-        data.append("email", token.email);
-        data.append("amount", donation.amount);
-        data.append("type", donation.type);
-        if (donation.comment !== null) {
-          data.append("comment", donation.comment);
-        }
-        if (donation.project !== null) {
-          data.append("project", donation.project);
-        }
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "donate");
-        xhr.onload = function () {
-          var res = JSON.parse(this.responseText);
-          if (res.success) {
-            document.getElementById("donation-stuff").classList.add("hidden");
-            document.getElementById("thanks").classList.remove("hidden");
-            if (res.new_account) {
-              document.getElementById("new-donor-password").classList.remove("hidden");
-              document.getElementById("reset-token").value = res.password_reset;
-            }
-          } else {
-            var errors = document.getElementById("errors");
-            errors.classList.remove("hidden");
-            errors.querySelector("p").textContent = res.reason;
-            e.target.removeAttribute("disabled");
-            e.target.textContent = i18n["Donate"];
-          }
-        };
-        xhr.send(data);
-      }
-    });
-
-    handler.open();
-  });
 })();
