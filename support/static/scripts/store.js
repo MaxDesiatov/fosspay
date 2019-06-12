@@ -22,6 +22,19 @@ class Store {
     return window.donation.amount;
   }
 
+  // Expose the line items for the payment using products and skus stored in Stripe.
+  getLineItems() {
+    let items = [];
+    this.lineItems.forEach(item =>
+      items.push({
+        type: 'sku',
+        parent: item.sku,
+        quantity: item.quantity,
+      })
+    );
+    return items;
+  }
+
   // Retrieve the configuration from the API.
   async getConfig() {
     try {
@@ -40,7 +53,7 @@ class Store {
   // Create the PaymentIntent with the cart details.
   async createPaymentIntent(currency, items) {
     try {
-      const response = await fetch('/payment_intents', {
+      const response = await fetch('/support/payment_intents', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
