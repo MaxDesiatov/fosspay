@@ -13,7 +13,7 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+stripe.api_key = _cfg("stripe-secret")
 stripe.api_version = '2019-03-14'
 
 

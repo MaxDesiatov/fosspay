@@ -10,12 +10,13 @@ from the main code if you'd like to use your own product and order management sy
 import stripe
 import os
 from functools import reduce
-from stripe_types import Product
+from fosspay.stripe_types import Product
 from dotenv import load_dotenv, find_dotenv
+from fosspay.config import _cfg, _cfgi
 
 load_dotenv(find_dotenv())
 
-stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+stripe.api_key = _cfg("stripe-secret")
 stripe.api_version = '2019-03-14'
 
 # For product retrieval and listing set API version to 2018-02-28 so that skus are returned.

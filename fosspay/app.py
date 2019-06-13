@@ -7,8 +7,8 @@ import os
 import locale
 import stripe
 
-from inventory import Inventory
-from stripe_types import Source
+from fosspay.inventory import Inventory
+from fosspay.stripe_types import Source
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from dotenv import load_dotenv, find_dotenv
 
@@ -102,18 +102,23 @@ def make_payment_intent():
     # Creates a new PaymentIntent with items from the cart.
     data = json.loads(request.data)
     try:
+        amount = Inventory.calculate_payment_amount(items=data['items']) or 500
+        currency = data['currency']
+        # START TODO refactor this code
+        payment_methods = _cfg('payment-methods').split(', ')
+        while("" in payment_methods) : 
+            payment_methods.remove("") 
+        if len(payment_methods) == 0 :
+            payment_methods = ['card']
+        # END TODO 
         payment_intent = stripe.PaymentIntent.create(
-            amount = Inventory.calculate_payment_amount(items=data['items']),
-            currency = data['currency'],
-            payment_method_types = os.getenv(
-                'PAYMENT_METHODS').split(', ') if os.getenv(
-                'PAYMENT_METHODS') else ['card']
+            amount = amount,
+            currency = currency,
+            payment_method_types = payment_methods
         )
-
         return jsonify({'paymentIntent': payment_intent})
     except Exception as e:
         return jsonify(e), 403
-
 
 @app.route('/payment_intents/<string:id>/shipping_change', methods=['POST'])
 def update_payment_intent(id):
