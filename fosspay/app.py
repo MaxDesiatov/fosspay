@@ -120,22 +120,7 @@ def make_payment_intent():
     except Exception as e:
         return jsonify(e), 403
 
-@app.route('/payment_intents/<string:id>/shipping_change', methods=['POST'])
-def update_payment_intent(id):
-    data = json.loads(request.data)
-    amount = Inventory.calculate_payment_amount(items=data['items'])
-    amount += Inventory.get_shipping_cost(data['shippingOption']['id'])
-    try:
-        payment_intent = stripe.PaymentIntent.modify(
-            id,
-            amount=amount
-        )
-
-        return jsonify({'paymentIntent': payment_intent})
-    except Exception as e:
-        return jsonify(e), 403
-
-@app.route('/payment_intents/<string:id>/status', methods=['GET'])
+@app.route('/support/payment_intents/<string:id>/status', methods=['GET'])
 def retrieve_payment_intent_status(id):
     payment_intent = stripe.PaymentIntent.retrieve(id)
     return jsonify({'paymentIntent': {'status': payment_intent["status"]}})
