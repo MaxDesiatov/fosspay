@@ -146,30 +146,81 @@
   });
 
   // Callback when a payment method is created.
-  paymentRequest.on('paymentmethod', async event => {
-    // Confirm the PaymentIntent with the payment method returned from the payment request.
-    const {error} = await stripe.confirmPaymentIntent(
-      paymentIntent.client_secret,
-      {
-        payment_method: event.paymentMethod.id
+  paymentRequest.on('paymentmethod', async ev => {
+    // Send paymentMethod to server
+    fetch(
+      '/support/confirm_payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          payment_method_id: paymentMethods['card']
+        })
       }
-    );
-    if (error) {
-      // Report to the browser that the payment failed.
-      event.complete('fail');
-      handlePayment({error});
-    } else {
-      // Report to the browser that the confirmation was successful, prompting
-      // it to close the browser payment method collection interface.
-      event.complete('success');
-      // Let Stripe.js handle the rest of the payment flow, including 3D Secure if needed.
-      const response = await stripe.handleCardPayment(
-        paymentIntent.client_secret
-      );
-      handlePayment(response);
-    }
+    ).then(function (response) {
+      // Handle server response (see Step 3)
+      response.json().then(function (json) {
+        handleServerResponse(json);
+      });
+    });
+    // // Confirm the PaymentIntent with the payment method returned from the payment request.
+    // const {error} = await stripe.confirmPaymentIntent(
+    //   paymentIntent.client_secret,
+    //   {
+    //     payment_method: event.paymentMethod.id
+    //   }
+    // );
+    // if (error) {
+    //   // Report to the browser that the payment failed.
+    //   event.complete('fail');
+    //   handlePayment({error});
+    // } else {
+    //   // Report to the browser that the confirmation was successful, prompting
+    //   // it to close the browser payment method collection interface.
+    //   event.complete('success');
+    //   // Let Stripe.js handle the rest of the payment flow, including 3D Secure if needed.
+    //   const response = await stripe.handleCardPayment(
+    //     paymentIntent.client_secret
+    //   );
+    //   handlePayment(response);
+    // }
   });
 
+      function handleServerResponse(response, complete) {
+        if (response.error) {
+          complete('fail');
+        } else if (response.requires_action) {
+          complete('success');
+          handleAction(response);
+        } else {
+          complete('success');
+        }
+      }
+
+      function handleAction(response) {
+        stripe.handleCardAction(
+          response.payment_intent_client_secret
+        ).then(function (result) {
+          if (result.error) {
+            // Show error in payment form
+          } else {
+            // The card action has been handled
+            // The PaymentIntent can be confirmed again on the server
+            fetch('/support/confirm_payment', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                payment_intent_id: result.paymentIntent.id
+              })
+            }).then(function (confirmResult) {
+              return confirmResult.json();
+            }).then(handleServerResponse);
+          }
+        });
+      }
   // Create the Payment Request Button.
   const paymentRequestButton = elements.create('paymentRequestButton', {
     paymentRequest,

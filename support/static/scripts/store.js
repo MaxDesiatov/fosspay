@@ -14,7 +14,7 @@ class Store {
     this.lineItems = [];
     this.products = {};
     this.productsFetchPromise = null;
-    this.displayPaymentSummary();
+    // this.displayPaymentSummary();
   }
 
   // Compute the total for the payment based on the line items (SKUs and quantity).
