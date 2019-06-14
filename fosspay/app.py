@@ -117,14 +117,14 @@ def make_payment_intent():
         #     payment_method_types = payment_methods
         # )
         payment_intent = stripe.PaymentIntent.create(
-            payment_method=payment_method,
-            amount=amount,
-            currency=currency,
+            payment_method=data['payment_method_id'],
+            amount=1099,
+            currency='usd',
             confirmation_method='manual',
             confirm=True,
         )
         # return jsonify({'paymentIntent': payment_intent})
-        return generate_payment_response(intent)
+        return generate_payment_response(payment_intent)
     except Exception as e:
         return jsonify(e), 403
 

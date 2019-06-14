@@ -146,24 +146,48 @@
   });
 
   // Callback when a payment method is created.
-  paymentRequest.on('paymentmethod', async ev => {
-    // Send paymentMethod to server
-    fetch(
-      '/support/confirm_payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          payment_method_id: paymentMethods['card']
-        })
-      }
-    ).then(function (response) {
-      // Handle server response (see Step 3)
-      response.json().then(function (json) {
-        handleServerResponse(json);
-      });
-    });
+  // paymentRequest.on('paymentmethod', async event => {
+  //   // Send paymentMethod to server
+  //   console.log(event)
+  //   fetch(
+  //     '/support/confirm_payment', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify({
+  //         payment_method_id: event.paymentMethod.id
+  //       })
+  //     }
+  //   ).then(function (response) {
+  //     // Handle server response (see Step 3)
+  //     response.json().then(function (json) {
+  //       handleServerResponse(json);
+  //     });
+  //   });
+
+  paymentRequest.on('paymentmethod', async ({
+      paymentMethod,
+      complete
+    }) => {
+      console.log(paymentMethod)
+      // Send paymentMethod to server
+      const response = await fetch(
+        '/support/confirm_payment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            payment_method_id: paymentMethod.id
+          })
+        }
+      );
+
+      // Step 3: handle server response
+      await handleServerResponse(await response.json(), complete);
+  });
+
     // // Confirm the PaymentIntent with the payment method returned from the payment request.
     // const {error} = await stripe.confirmPaymentIntent(
     //   paymentIntent.client_secret,
@@ -185,7 +209,7 @@
     //   );
     //   handlePayment(response);
     // }
-  });
+  // });
 
       function handleServerResponse(response, complete) {
         if (response.error) {
