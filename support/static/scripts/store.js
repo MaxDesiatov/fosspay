@@ -24,14 +24,20 @@ class Store {
 
   // Expose the line items for the payment using products and skus stored in Stripe.
   getLineItems() {
-    let items = [];
-    this.lineItems.forEach(item =>
-      items.push({
-        type: 'sku',
-        parent: item.sku,
-        quantity: item.quantity,
-      })
-    );
+    let items = [
+      {
+        type: "sku",
+        parent: "pSku",
+        quantity: 1
+      }
+    ];
+    // this.lineItems.forEach(item =>
+    //   items.push({
+    //     type: 'sku',
+    //     parent: item.sku,
+    //     quantity: item.quantity,
+    //   })
+    // );
     return items;
   }
 

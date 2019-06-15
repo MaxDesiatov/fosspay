@@ -27,14 +27,15 @@ class Inventory:
     @staticmethod
     def calculate_payment_amount(items: list) -> int:
         product_list = stripe.Product.list(
-            limit=3, stripe_version=product_api_stripe_version)
+            limit=1, stripe_version=product_api_stripe_version)
         product_list_data = product_list['data']
-        total = 0
-        for item in items:
-            sku_id = item['parent']
-            product = next(
-                filter(lambda p: p['skus']['data'][0]['id'] == sku_id, product_list_data))
-            total += (product['skus']['data'][0]['price'] * item['quantity'])
+        # TODO change this with list of products
+        total = 500
+        # for item in items:
+        #     sku_id = item['parent']
+        #     product = next(
+        #         filter(lambda p: p['skus']['data'][0]['id'] == sku_id, product_list_data))
+        #     total += (product['skus']['data'][0]['price'] * item['quantity'])
         return total
 
     @staticmethod
@@ -45,7 +46,7 @@ class Inventory:
 
     @staticmethod
     def list_products() -> [Product]:
-        return stripe.Product.list(limit=3, stripe_version=product_api_stripe_version)
+        return stripe.Product.list(limit=1, stripe_version=product_api_stripe_version)
 
     @staticmethod
     def retrieve_product(product_id) -> Product:
@@ -53,7 +54,7 @@ class Inventory:
 
     @staticmethod
     def products_exist(product_list: [Product]) -> bool:
-        valid_products = ['increment', 'shirt', 'pins']
+        valid_products = ['donation']
         product_list_data = product_list['data']
 
         return reduce(lambda acc, product: acc and len(product_list_data) == 3 and product['id'] in valid_products,

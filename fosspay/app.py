@@ -109,22 +109,22 @@ def make_payment_intent():
         while("" in payment_methods) : 
             payment_methods.remove("") 
         if len(payment_methods) == 0 :
-            payment_methods = [0]
+            payment_methods = ['card']
         # END TODO 
-        # payment_intent = stripe.PaymentIntent.create(
-        #     amount = amount,
-        #     currency = currency,
-        #     payment_method_types = payment_methods
-        # )
         payment_intent = stripe.PaymentIntent.create(
-            payment_method=data['payment_method_id'],
-            amount=1099,
-            currency='usd',
-            confirmation_method='manual',
-            confirm=True,
+            amount = amount,
+            currency = currency,
+            payment_method_types = payment_methods
         )
-        # return jsonify({'paymentIntent': payment_intent})
-        return generate_payment_response(payment_intent)
+        # payment_intent = stripe.PaymentIntent.create(
+        #     payment_method=data['payment_method_id'],
+        #     amount=1099,
+        #     currency='usd',
+        #     confirmation_method='manual',
+        #     confirm=True,
+        # )
+        return jsonify({'paymentIntent': payment_intent})
+        # return generate_payment_response(payment_intent)
     except Exception as e:
         return jsonify(e), 403
 
