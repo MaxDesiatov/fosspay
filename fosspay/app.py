@@ -97,7 +97,7 @@ def inject():
     }
 
 # STRIPE CODE
-@app.route('/support/payment_intents', methods=['POST'])
+@app.route('/support/confirm_payment', methods=['POST'])
 def make_payment_intent():
     # Creates a new PaymentIntent with items from the cart.
     data = json.loads(request.data)
@@ -112,17 +112,12 @@ def make_payment_intent():
             payment_methods = ['card']
         # END TODO 
         payment_intent = stripe.PaymentIntent.create(
-            amount = amount,
-            currency = currency,
-            payment_method_types = payment_methods
+            payment_method=data['payment_method_id'],
+            amount=1099,
+            currency='usd',
+            confirmation_method='manual',
+            confirm=True,
         )
-        # payment_intent = stripe.PaymentIntent.create(
-        #     payment_method=data['payment_method_id'],
-        #     amount=1099,
-        #     currency='usd',
-        #     confirmation_method='manual',
-        #     confirm=True,
-        # )
         return jsonify({'paymentIntent': payment_intent})
         # return generate_payment_response(payment_intent)
     except Exception as e:
@@ -144,7 +139,7 @@ def generate_payment_response(intent):
     # Invalid status
     return json.dumps({'error': 'Invalid PaymentIntent status'}), 500
 
-@app.route('/support/payment_intents/<string:id>/status', methods=['GET'])
+@app.route('/support/confirm_payment/<string:id>/status', methods=['GET'])
 def retrieve_payment_intent_status(id):
     payment_intent = stripe.PaymentIntent.retrieve(id)
     return jsonify({'paymentIntent': {'status': payment_intent["status"]}})

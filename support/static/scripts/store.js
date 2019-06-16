@@ -44,47 +44,49 @@ class Store {
   // Retrieve the configuration from the API.
   async getConfig() {
     try {
-      const response = await fetch('/support/config');
+      const response = await fetch("/support/config");
       const config = await response.json();
-      if (config.stripePublishableKey.includes('live')) {
+      if (config.stripePublishableKey.includes("live")) {
         // Hide the demo notice if the publishable key is in live mode.
-        document.querySelector('#order-total .demo').style.display = 'none';
+        document.querySelector("#order-total .demo").style.display =
+          "none";
       }
       return config;
     } catch (err) {
-      return {error: err.message};
+      return { error: err.message };
     }
   }
 
   // Create the PaymentIntent with the cart details.
-  async createPaymentIntent(currency, items) {
+  async createPaymentIntent({ currency, items, payment_method_id }) {
     try {
-      const response = await fetch('/support/payment_intents', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+      const response = await fetch("/support/confirm_payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           currency,
           items,
-        }),
+          payment_method_id
+        })
       });
       const data = await response.json();
       if (data.error) {
-        return {error: data.error};
+        return { error: data.error };
       } else {
         return data;
       }
     } catch (err) {
-      return {error: err.message};
+      return { error: err.message };
     }
   }
 
   // Format a price (assuming a two-decimal currency like EUR or USD for simplicity).
   formatPrice(amount, currency) {
     let price = (amount / 100).toFixed(2);
-    let numberFormat = new Intl.NumberFormat(['en-US'], {
-      style: 'currency',
+    let numberFormat = new Intl.NumberFormat(["en-US"], {
+      style: "currency",
       currency: currency,
-      currencyDisplay: 'symbol',
+      currencyDisplay: "symbol"
     });
     return numberFormat.format(price);
   }
@@ -93,9 +95,10 @@ class Store {
   // Note: For simplicity, we're just using template strings to inject data in the DOM,
   // but in production you would typically use a library like React to manage this effectively.
   displayPaymentSummary() {
-    const orderTotal = document.getElementById('order-total');
-    orderTotal.querySelector('[data-total]').innerText = 
-      this.formatPrice(window.donation.amount, 'usd');
+    const orderTotal = document.getElementById("order-total");
+    orderTotal.querySelector(
+      "[data-total]"
+    ).innerText = this.formatPrice(window.donation.amount, "usd");
   }
 }
 

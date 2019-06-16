@@ -145,71 +145,10 @@
     requestPayerEmail: true
   });
 
-  // Callback when a payment method is created.
-  // paymentRequest.on('paymentmethod', async event => {
-  //   // Send paymentMethod to server
-  //   console.log(event)
-  //   fetch(
-  //     '/support/confirm_payment', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify({
-  //         payment_method_id: event.paymentMethod.id
-  //       })
-  //     }
-  //   ).then(function (response) {
-  //     // Handle server response (see Step 3)
-  //     response.json().then(function (json) {
-  //       handleServerResponse(json);
-  //     });
-  //   });
-
-  paymentRequest.on(
-    'paymentmethod',
-    async ({ paymentMethod, complete }) => {
-      console.log(paymentMethod);
-      // Send paymentMethod to server
-      const response = await fetch('/support/confirm_payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          payment_method_id: paymentMethod.id
-        })
-      });
-
-      // Step 3: handle server response
-      await handleServerResponse(await response.json(), complete);
-    }
-  );
-
-  // // Confirm the PaymentIntent with the payment method returned from the payment request.
-  // const {error} = await stripe.confirmPaymentIntent(
-  //   paymentIntent.client_secret,
-  //   {
-  //     payment_method: event.paymentMethod.id
-  //   }
-  // );
-  // if (error) {
-  //   // Report to the browser that the payment failed.
-  //   event.complete('fail');
-  //   handlePayment({error});
-  // } else {
-  //   // Report to the browser that the confirmation was successful, prompting
-  //   // it to close the browser payment method collection interface.
-  //   event.complete('success');
-  //   // Let Stripe.js handle the rest of the payment flow, including 3D Secure if needed.
-  //   const response = await stripe.handleCardPayment(
-  //     paymentIntent.client_secret
-  //   );
-  //   handlePayment(response);
-  // }
-  // });
-
   function handleServerResponse(response, complete) {
+    if (!complete) {
+      complete = (str) => console.log(str)
+    }
     if (response.error) {
       complete('fail');
     } else if (response.requires_action) {
@@ -289,97 +228,35 @@
     event.preventDefault();
 
     // Retrieve the user information from the form.
-    const payment = form.querySelector('input[name=payment]:checked').value;
+
     const name = form.querySelector('input[name=name]').value;
-    const country = form.querySelector('select[name=country] option:checked')
-      .value;
-    const email = form.querySelector('input[name=email]').value;
+  
     // Disable the Pay button to prevent multiple click events.
     submitButton.disabled = true;
     submitButton.textContent = 'Processing…';
 
-    if (payment === 'card') {
-      // Let Stripe.js handle the confirmation of the PaymentIntent with the card Element.
-      const response = await stripe.handleCardPayment(
-        paymentIntent.client_secret,
-        card,
-        {
-          payment_method_data: {
-            billing_details: {
-              name,
-            },
-          },
-        }
-      );
-      handlePayment(response);
-    } else if (payment === 'sepa_debit') {
-      // Confirm the PaymentIntent with the IBAN Element and additional SEPA Debit source data.
-      const {error} = await stripe.createSource(iban, {
-        type: 'sepa_debit',
-        currency: 'eur',
-        owner: {
-          name,
-          email,
-        },
-        mandate: {
-          // Automatically send a mandate notification email to your customer
-          // once the source is charged.
-          notification_method: 'email',
-        },
-        metadata: {
-          paymentIntent: paymentIntent.id,
-        },
+
+
+      const {
+        paymentMethod,
+        error
+      } = await stripe.createPaymentMethod("card", card, {
+        billing_details: { name: name }
       });
       if (error) {
-        handlePayment({error});
-        return;
-      }
-      // Poll the PaymentIntent status.
-      pollPaymentIntentStatus(paymentIntent.id);
-    } else {
-      // Prepare all the Stripe source common data.
-      const sourceData = {
-        type: payment,
-        amount: paymentIntent.amount,
-        currency: paymentIntent.currency,
-        owner: {
-          name,
-          email,
-        },
-        redirect: {
-          return_url: window.location.href,
-        },
-        statement_descriptor: 'Stripe Payments Demo',
-        metadata: {
-          paymentIntent: paymentIntent.id,
-        },
-      };
-
-      // Add extra source information which are specific to a payment method.
-      switch (payment) {
-        case 'ideal':
-          // iDEAL: Add the selected Bank from the iDEAL Bank Element.
-          const {source} = await stripe.createSource(idealBank, sourceData);
-          handleSourceActiviation(source);
-          return;
-          break;
-        case 'sofort':
-          // SOFORT: The country is required before redirecting to the bank.
-          sourceData.sofort = {
-            country,
-          };
-          break;
-        case 'ach_credit_transfer':
-          // ACH Bank Transfer: Only supports USD payments, edit the default config to try it.
-          // In test mode, we can set the funds to be received via the owner email.
-          sourceData.owner.email = `amount_${paymentIntent.amount}@example.com`;
-          break;
-      }
-
-      // Create a Stripe source with the common data and extra information.
-      const {source} = await stripe.createSource(sourceData);
-      handleSourceActiviation(source);
-    }
+        // Show error in payment form
+      } else {
+               // Send paymentMethod.id to your server (see Step 2)
+               const response = await store.createPaymentIntent(
+                 {
+                   payment_method_id: paymentMethod.id,
+                   currency: config.currency,
+                   items:store.getLineItems()
+                 }
+               );
+               paymentIntent = response.paymentIntent;
+               handleServerResponse(response);
+             }
   });
 
   // Handle new PaymentIntent result
@@ -537,7 +414,7 @@
     start = start ? start : Date.now();
     const endStates = ['succeeded', 'processing', 'canceled'];
     // Retrieve the PaymentIntent status from our server.
-    const rawResponse = await fetch(`payment_intents/${paymentIntent}/status`);
+    const rawResponse = await fetch(`support/confirm_payment/${paymentIntent}/status`);
     const response = await rawResponse.json();
     if (
       !endStates.includes(response.paymentIntent.status) &&
@@ -577,13 +454,6 @@
   } else {
     // Update the interface to display the checkout form.
     mainElement.classList.add('checkout');
-
-    // Create the PaymentIntent with the cart details.
-    const response = await store.createPaymentIntent(
-      config.currency,
-      store.getLineItems()
-    );
-    paymentIntent = response.paymentIntent;
   }
   document.getElementById('main').classList.remove('loading');
 
