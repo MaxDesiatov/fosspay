@@ -481,6 +481,9 @@
     submitButton.innerText = label;
   };
 
+  // Move updateButtonLabel to global to fire it on donation amount change
+  window.updateButtonLabel = updateButtonLabel;
+
   const selectCountry = country => {
     const selector = document.getElementById('country');
     selector.querySelector(`option[value=${country}]`).selected = 'selected';

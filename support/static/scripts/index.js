@@ -6,6 +6,9 @@
     comment: null
   };
 
+  // Set default value that will be overwrite in payments.js
+  window.updateButtonLabel = ()=>{}
+
   function selectAmount(e) {
     e.preventDefault();
     document.querySelector(".amounts .active").classList.remove("active");
@@ -19,6 +22,9 @@
       custom.classList.add("hidden");
       donation.amount = +e.target.dataset.amount * 100;
     }
+
+    // update Pay button
+    updateButtonLabel('card')
   }
 
   function selectFrequency(e) {
@@ -48,6 +54,9 @@
     }
     e.target.value = value;
     donation.amount = value * 100;
+
+    // update Pay button
+    updateButtonLabel('card')
   });
 
   var project = document.getElementById("project")
