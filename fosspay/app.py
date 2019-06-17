@@ -6,8 +6,6 @@ import sys
 import os
 import locale
 import stripe
-
-from fosspay.inventory import Inventory
 from fosspay.stripe_types import Source
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from dotenv import load_dotenv, find_dotenv
@@ -102,7 +100,7 @@ def make_payment_intent():
     # Creates a new PaymentIntent with items from the cart.
     data = json.loads(request.data)
     try:
-        amount = Inventory.calculate_payment_amount(items=data['items']) or 500
+        amount = 500
         currency = data['currency']
         # START TODO refactor this code
         payment_methods = _cfg('payment-methods').split(', ')
