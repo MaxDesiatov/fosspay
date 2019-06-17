@@ -234,9 +234,6 @@
     // Disable the Pay button to prevent multiple click events.
     submitButton.disabled = true;
     submitButton.textContent = 'Processing…';
-
-
-
       const {
         paymentMethod,
         error
