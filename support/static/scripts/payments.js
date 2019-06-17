@@ -248,7 +248,13 @@
                  {
                    payment_method_id: paymentMethod.id,
                    currency: config.currency,
-                   items:store.getLineItems()
+                   items: [
+                     {
+                       type: "sku",
+                       parent: "pSku",
+                       quantity: 1
+                     }
+                   ]
                  }
                );
                paymentIntent = response.paymentIntent;

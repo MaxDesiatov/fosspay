@@ -14,31 +14,11 @@ class Store {
     this.lineItems = [];
     this.products = {};
     this.productsFetchPromise = null;
-    // this.displayPaymentSummary();
   }
 
   // Compute the total for the payment based on the line items (SKUs and quantity).
   getPaymentTotal() {
     return window.donation.amount;
-  }
-
-  // Expose the line items for the payment using products and skus stored in Stripe.
-  getLineItems() {
-    let items = [
-      {
-        type: "sku",
-        parent: "pSku",
-        quantity: 1
-      }
-    ];
-    // this.lineItems.forEach(item =>
-    //   items.push({
-    //     type: 'sku',
-    //     parent: item.sku,
-    //     quantity: item.quantity,
-    //   })
-    // );
-    return items;
   }
 
   // Retrieve the configuration from the API.
