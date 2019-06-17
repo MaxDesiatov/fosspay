@@ -148,15 +148,15 @@
 
   function handleServerResponse(response, complete) {
     if (!complete) {
-      complete = (str) => console.log(str)
+      complete = str => console.log(str);
     }
     if (response.error) {
-      complete('fail');
+      complete("fail");
     } else if (response.requires_action) {
-      complete('success');
+      complete("success");
       handleAction(response);
     } else {
-      complete('success');
+      complete("success");
     }
   }
 
