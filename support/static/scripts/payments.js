@@ -20,7 +20,7 @@
   // Create references to the main form and its submit button.
   const form = document.getElementById('payment-form');
   const submitButton = form.querySelector('button[type=submit]');
-  let amountSpan = document.getElementById("payment-amount");
+  const amountSpan = document.getElementById("payment-amount");
 
   // Global variable to store the PaymentIntent object.
   let paymentIntent;

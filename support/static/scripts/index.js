@@ -5,7 +5,7 @@
     project: null,
     comment: null
   };
-  let donationFrequencySpan = document.getElementById(
+  const donationFrequencySpan = document.getElementById(
     "payment-frequency"
   );
 
