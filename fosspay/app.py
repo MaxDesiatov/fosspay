@@ -98,11 +98,6 @@ def make_payment_intent():
     data = json.loads(request.data)
     try:
         amount = data['amount']
-        payment_methods = _cfg('payment-methods').split(', ')
-        while("" in payment_methods) : 
-            payment_methods.remove("") 
-        if len(payment_methods) == 0 :
-            payment_methods = ['card']
         payment_intent = stripe.PaymentIntent.create(
             payment_method=data['payment_method_id'],
             amount=amount,
