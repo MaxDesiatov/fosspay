@@ -12,14 +12,14 @@
  */
 
 (async () => {
-  'use strict';
+  "use strict";
 
   // Retrieve the configuration for the store.
   const config = await store.getConfig();
 
   // Create references to the main form and its submit button.
-  const form = document.getElementById('payment-form');
-  const submitButton = form.querySelector('button[type=submit]');
+  const form = document.getElementById("payment-form");
+  const submitButton = form.querySelector("button[type=submit]");
   const amountSpan = document.getElementById("payment-amount");
 
   // Global variable to store the PaymentIntent object.
@@ -38,20 +38,20 @@
   // Prepare the styles for Elements.
   const style = {
     base: {
-      iconColor: '#666ee8',
-      color: '#31325f',
+      iconColor: "#666ee8",
+      color: "#31325f",
       fontWeight: 400,
       fontFamily:
         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
-      fontSmoothing: 'antialiased',
-      fontSize: '15px',
-      '::placeholder': {
-        color: '#aab7c4',
+      fontSmoothing: "antialiased",
+      fontSize: "15px",
+      "::placeholder": {
+        color: "#aab7c4"
       },
-      ':-webkit-autofill': {
-        color: '#666ee8',
-      },
-    },
+      ":-webkit-autofill": {
+        color: "#666ee8"
+      }
+    }
   };
 
   /**
@@ -61,19 +61,19 @@
    */
 
   // Create a Card Element and pass some custom styles to it.
-  const card = elements.create('card', {style});
+  const card = elements.create("card", { style });
 
   // Mount the Card Element on the page.
-  card.mount('#card-element');
+  card.mount("#card-element");
 
   // Monitor change events on the Card Element to display any errors.
-  card.on('change', ({error}) => {
-    const cardErrors = document.getElementById('card-errors');
+  card.on("change", ({ error }) => {
+    const cardErrors = document.getElementById("card-errors");
     if (error) {
       cardErrors.textContent = error.message;
-      cardErrors.classList.add('visible');
+      cardErrors.classList.add("visible");
     } else {
-      cardErrors.classList.remove('visible');
+      cardErrors.classList.remove("visible");
     }
     // Re-enable the Pay button.
     submitButton.disabled = false;
@@ -88,23 +88,23 @@
   // Create a IBAN Element and pass the right options for styles and supported countries.
   const ibanOptions = {
     style,
-    supportedCountries: ['SEPA'],
+    supportedCountries: ["SEPA"]
   };
-  const iban = elements.create('iban', ibanOptions);
+  const iban = elements.create("iban", ibanOptions);
 
   // Mount the IBAN Element on the page.
-  iban.mount('#iban-element');
+  iban.mount("#iban-element");
 
   // Monitor change events on the IBAN Element to display any errors.
-  iban.on('change', ({error, bankName}) => {
-    const ibanErrors = document.getElementById('iban-errors');
+  iban.on("change", ({ error, bankName }) => {
+    const ibanErrors = document.getElementById("iban-errors");
     if (error) {
       ibanErrors.textContent = error.message;
-      ibanErrors.classList.add('visible');
+      ibanErrors.classList.add("visible");
     } else {
-      ibanErrors.classList.remove('visible');
+      ibanErrors.classList.remove("visible");
       if (bankName) {
-        updateButtonLabel('sepa_debit', bankName);
+        updateButtonLabel("sepa_debit", bankName);
       }
     }
     // Re-enable the Pay button.
@@ -118,12 +118,14 @@
    */
 
   // Create a iDEAL Bank Element and pass the style options, along with an extra `padding` property.
-  const idealBank = elements.create('idealBank', {
-    style: {base: Object.assign({padding: '10px 15px'}, style.base)},
+  const idealBank = elements.create("idealBank", {
+    style: {
+      base: Object.assign({ padding: "10px 15px" }, style.base)
+    }
   });
 
   // Mount the iDEAL Bank Element on the page.
-  idealBank.mount('#ideal-bank-element');
+  idealBank.mount("#ideal-bank-element");
 
   /**
    * Implement a Stripe Payment Request Button Element.
@@ -139,53 +141,51 @@
     country: config.stripeCountry,
     currency: config.currency,
     total: {
-      label: 'Total',
-      amount: store.getPaymentTotal(),
+      label: "Total",
+      amount: store.getPaymentTotal()
     },
     requestShipping: false,
     requestPayerEmail: true
   });
 
-  function handleServerResponse(response, complete) {
-    if (!complete) {
-      complete = str => console.log(str);
-    }
+  function handleServerResponse(response) {
     if (response.error) {
-      complete("fail");
+      // Handle error
     } else if (response.requires_action) {
-      complete("success");
+      // Handle required action
       handleAction(response);
     } else {
-      complete("success");
+      // Handle success
     }
   }
 
-  function handleAction(response) {
-    stripe
-      .handleCardAction(response.payment_intent_client_secret)
-      .then(async function(result) {
-        if (result.error) {
-          // Show error in payment form
-        } else {
-          // The card action has been handled
-          // The PaymentIntent can be confirmed again on the server
-          const resultConfirmPayment = await fetch(
-            absoluteLink("confirm_payment"),
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                payment_intent_id: result.paymentIntent.id,
-                amount: store.getPaymentTotal()
-              })
-            }
-          );
-          const data = await resultConfirmPayment.json();
-          handleServerResponse(data);
+  async function handleAction(response) {
+    const handleCardActionResult = await stripe.handleCardAction(
+      response.payment_intent_client_secret
+    );
+
+    if (handleCardActionResult.error) {
+      // Show error in payment form
+    } else {
+      // The card action has been handled
+      // The PaymentIntent can be confirmed again on the server
+      const resultConfirmPayment = await fetch(
+        absoluteLink("confirm_payment"),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            payment_intent_id:
+              handleCardActionResult.paymentIntent.id,
+            amount: store.getPaymentTotal()
+          })
         }
-      });
+      );
+      const data = await resultConfirmPayment.json();
+      handleServerResponse(data);
+    }
   }
 
   // Create the Payment Request Button.
@@ -200,12 +200,14 @@
   const paymentRequestSupport = await paymentRequest.canMakePayment();
   if (paymentRequestSupport) {
     // Display the Pay button by mounting the Element in the DOM.
-    paymentRequestButton.mount('#payment-request-button');
+    paymentRequestButton.mount("#payment-request-button");
     // Replace the instruction.
-    document.querySelector('.instruction').innerText =
-      'Or enter your payment details below';
+    document.querySelector(".instruction").innerText =
+      "Or enter your payment details below";
     // Show the payment request section.
-    document.getElementById('payment-request').classList.add('visible');
+    document
+      .getElementById("payment-request")
+      .classList.add("visible");
   }
 
   /**
@@ -221,85 +223,86 @@
 
   // Listen to changes to the user-selected country.
   form
-    .querySelector('select[name=country]')
-    .addEventListener('change', event => {
+    .querySelector("select[name=country]")
+    .addEventListener("change", event => {
       event.preventDefault();
       selectCountry(event.target.value);
     });
 
   // Submit handler for our payment form.
-  form.addEventListener('submit', async event => {
+  form.addEventListener("submit", async event => {
     event.preventDefault();
 
     // Retrieve the user information from the form.
     // TODO information from form definitely should be used somewhere
-    const name = form.querySelector('input[name=name]').value;
-  
+    const name = form.querySelector("input[name=name]").value;
+
     // Disable the Pay button to prevent multiple click events.
     submitButton.disabled = true;
-    submitButton.textContent = 'Processing…';
-      const {
-        paymentMethod,
-        error
-      } = await stripe.createPaymentMethod("card", card, {
+    submitButton.textContent = "Processing…";
+    const { paymentMethod, error } = await stripe.createPaymentMethod(
+      "card",
+      card,
+      {
         billing_details: { name: name }
+      }
+    );
+    if (error) {
+      // Show error in payment form
+    } else {
+      // Send paymentMethod.id to your server (see Step 2)
+      const response = await store.createPaymentIntent({
+        payment_method_id: paymentMethod.id,
+        currency: config.currency,
+        items: [
+          {
+            type: "sku",
+            parent: "pSku",
+            quantity: 1
+          }
+        ]
       });
-      if (error) {
-        // Show error in payment form
-      } else {
-               // Send paymentMethod.id to your server (see Step 2)
-               const response = await store.createPaymentIntent(
-                 {
-                   payment_method_id: paymentMethod.id,
-                   currency: config.currency,
-                   items: [
-                     {
-                       type: "sku",
-                       parent: "pSku",
-                       quantity: 1
-                     }
-                   ]
-                 }
-               );
-               paymentIntent = response.paymentIntent;
-               handleServerResponse(response);
-             }
+      paymentIntent = response.paymentIntent;
+      handleServerResponse(response);
+    }
   });
 
   // Handle new PaymentIntent result
   const handlePayment = paymentResponse => {
-    const {paymentIntent, error} = paymentResponse;
+    const { paymentIntent, error } = paymentResponse;
 
-    const mainElement = document.getElementById('main');
-    const confirmationElement = document.getElementById('confirmation');
+    const mainElement = document.getElementById("main");
+    const confirmationElement = document.getElementById(
+      "confirmation"
+    );
 
     if (error) {
-      mainElement.classList.remove('processing');
-      mainElement.classList.remove('receiver');
-      confirmationElement.querySelector('.error-message').innerText =
+      mainElement.classList.remove("processing");
+      mainElement.classList.remove("receiver");
+      confirmationElement.querySelector(".error-message").innerText =
         error.message;
-      mainElement.classList.add('error');
-    } else if (paymentIntent.status === 'succeeded') {
+      mainElement.classList.add("error");
+    } else if (paymentIntent.status === "succeeded") {
       // Success! Payment is confirmed. Update the interface to display the confirmation screen.
-      mainElement.classList.remove('processing');
-      mainElement.classList.remove('receiver');
+      mainElement.classList.remove("processing");
+      mainElement.classList.remove("receiver");
       // Update the note about receipt and shipping (the payment has been fully confirmed by the bank).
-      confirmationElement.querySelector('.note').innerText =
-        'We just sent your receipt to your email address, and your items will be on their way shortly.';
-      mainElement.classList.add('success');
-    } else if (paymentIntent.status === 'processing') {
+      confirmationElement.querySelector(".note").innerText =
+        "We just sent your receipt to your email address, and your items will be on their way shortly.";
+      mainElement.classList.add("success");
+    } else if (paymentIntent.status === "processing") {
       // Success! Now waiting for payment confirmation. Update the interface to display the confirmation screen.
-      mainElement.classList.remove('processing');
+      mainElement.classList.remove("processing");
       // Update the note about receipt and shipping (the payment is not yet confirmed by the bank).
-      confirmationElement.querySelector('.note').innerText =
-        'We’ll send your receipt and ship your items as soon as your payment is confirmed.';
-      mainElement.classList.add('success');
+      confirmationElement.querySelector(".note").innerText =
+        "We’ll send your receipt and ship your items as soon as your payment is confirmed.";
+      mainElement.classList.add("success");
     } else {
       // Payment has failed.
-      mainElement.classList.remove('success');
-      mainElement.classList.remove('processing');
-      mainElement.classList.remove('receiver');
-      mainElement.classList.add('error');
+      mainElement.classList.remove("success");
+      mainElement.classList.remove("processing");
+      mainElement.classList.remove("receiver");
+      mainElement.classList.add("error");
     }
   };
 
@@ -318,9 +321,11 @@
     start = null
   ) => {
     start = start ? start : Date.now();
-    const endStates = ['succeeded', 'processing', 'canceled'];
+    const endStates = ["succeeded", "processing", "canceled"];
     // Retrieve the PaymentIntent status from our server.
-    const rawResponse = await fetch(absoluteLink(`confirm_payment/${paymentIntent}/status`));
+    const rawResponse = await fetch(
+      absoluteLink(`confirm_payment/${paymentIntent}/status`)
+    );
     const response = await rawResponse.json();
     if (
       !endStates.includes(response.paymentIntent.status) &&
@@ -339,29 +344,32 @@
       handlePayment(response);
       if (!endStates.includes(response.paymentIntent.status)) {
         // Status has not changed yet. Let's time out.
-        console.warn(new Error('Polling timed out.'));
+        console.warn(new Error("Polling timed out."));
       }
     }
   };
 
   const url = new URL(window.location.href);
-  const mainElement = document.getElementById('main');
-  if (url.searchParams.get('source') && url.searchParams.get('client_secret')) {
+  const mainElement = document.getElementById("main");
+  if (
+    url.searchParams.get("source") &&
+    url.searchParams.get("client_secret")
+  ) {
     // Update the interface to display the processing screen.
-    mainElement.classList.add('checkout', 'success', 'processing');
+    mainElement.classList.add("checkout", "success", "processing");
 
-    const {source} = await stripe.retrieveSource({
-      id: url.searchParams.get('source'),
-      client_secret: url.searchParams.get('client_secret'),
+    const { source } = await stripe.retrieveSource({
+      id: url.searchParams.get("source"),
+      client_secret: url.searchParams.get("client_secret")
     });
 
     // Poll the PaymentIntent status.
     pollPaymentIntentStatus(source.metadata.paymentIntent);
   } else {
     // Update the interface to display the checkout form.
-    mainElement.classList.add('checkout');
+    mainElement.classList.add("checkout");
   }
-  document.getElementById('main').classList.remove('loading');
+  document.getElementById("main").classList.remove("loading");
 
   /**
    * Display the relevant payment methods for a selected country.
@@ -371,116 +379,118 @@
   // Read the Stripe guide: https://stripe.com/payments/payment-methods-guide
   const paymentMethods = {
     ach_credit_transfer: {
-      name: 'Bank Transfer',
-      flow: 'receiver',
-      countries: ['US'],
-      currencies: ['usd'],
+      name: "Bank Transfer",
+      flow: "receiver",
+      countries: ["US"],
+      currencies: ["usd"]
     },
     alipay: {
-      name: 'Alipay',
-      flow: 'redirect',
-      countries: ['CN', 'HK', 'SG', 'JP'],
+      name: "Alipay",
+      flow: "redirect",
+      countries: ["CN", "HK", "SG", "JP"],
       currencies: [
-        'aud',
-        'cad',
-        'eur',
-        'gbp',
-        'hkd',
-        'jpy',
-        'nzd',
-        'sgd',
-        'usd',
-      ],
+        "aud",
+        "cad",
+        "eur",
+        "gbp",
+        "hkd",
+        "jpy",
+        "nzd",
+        "sgd",
+        "usd"
+      ]
     },
     bancontact: {
-      name: 'Bancontact',
-      flow: 'redirect',
-      countries: ['BE'],
-      currencies: ['eur'],
+      name: "Bancontact",
+      flow: "redirect",
+      countries: ["BE"],
+      currencies: ["eur"]
     },
     card: {
-      name: 'Card',
-      flow: 'none',
+      name: "Card",
+      flow: "none"
     },
     eps: {
-      name: 'EPS',
-      flow: 'redirect',
-      countries: ['AT'],
-      currencies: ['eur'],
+      name: "EPS",
+      flow: "redirect",
+      countries: ["AT"],
+      currencies: ["eur"]
     },
     ideal: {
-      name: 'iDEAL',
-      flow: 'redirect',
-      countries: ['NL'],
-      currencies: ['eur'],
+      name: "iDEAL",
+      flow: "redirect",
+      countries: ["NL"],
+      currencies: ["eur"]
     },
     giropay: {
-      name: 'Giropay',
-      flow: 'redirect',
-      countries: ['DE'],
-      currencies: ['eur'],
+      name: "Giropay",
+      flow: "redirect",
+      countries: ["DE"],
+      currencies: ["eur"]
     },
     multibanco: {
-      name: 'Multibanco',
-      flow: 'receiver',
-      countries: ['PT'],
-      currencies: ['eur'],
+      name: "Multibanco",
+      flow: "receiver",
+      countries: ["PT"],
+      currencies: ["eur"]
     },
     sepa_debit: {
-      name: 'SEPA Direct Debit',
-      flow: 'none',
+      name: "SEPA Direct Debit",
+      flow: "none",
       countries: [
-        'FR',
-        'DE',
-        'ES',
-        'BE',
-        'NL',
-        'LU',
-        'IT',
-        'PT',
-        'AT',
-        'IE',
-        'FI',
+        "FR",
+        "DE",
+        "ES",
+        "BE",
+        "NL",
+        "LU",
+        "IT",
+        "PT",
+        "AT",
+        "IE",
+        "FI"
       ],
-      currencies: ['eur'],
+      currencies: ["eur"]
     },
     sofort: {
-      name: 'SOFORT',
-      flow: 'redirect',
-      countries: ['DE', 'AT'],
-      currencies: ['eur'],
+      name: "SOFORT",
+      flow: "redirect",
+      countries: ["DE", "AT"],
+      currencies: ["eur"]
     },
     wechat: {
-      name: 'WeChat',
-      flow: 'none',
-      countries: ['CN', 'HK', 'SG', 'JP'],
+      name: "WeChat",
+      flow: "none",
+      countries: ["CN", "HK", "SG", "JP"],
       currencies: [
-        'aud',
-        'cad',
-        'eur',
-        'gbp',
-        'hkd',
-        'jpy',
-        'nzd',
-        'sgd',
-        'usd',
-      ],
-    },
+        "aud",
+        "cad",
+        "eur",
+        "gbp",
+        "hkd",
+        "jpy",
+        "nzd",
+        "sgd",
+        "usd"
+      ]
+    }
   };
 
   // Update the main button to reflect the payment method being selected.
   const updateButtonLabel = (paymentMethod, bankName) => {
-    
-    let amount = store.formatPrice(store.getPaymentTotal(), config.currency);
+    let amount = store.formatPrice(
+      store.getPaymentTotal(),
+      config.currency
+    );
     let name = paymentMethods[paymentMethod].name;
     let label = `Sponsor ${amount}`;
-    if (paymentMethod !== 'card') {
+    if (paymentMethod !== "card") {
       label = `Sponsor ${amount} with ${name}`;
     }
-    if (paymentMethod === 'wechat') {
+    if (paymentMethod === "wechat") {
       label = `Generate QR code to sponsor ${amount} with ${name}`;
     }
-    if (paymentMethod === 'sepa_debit' && bankName) {
+    if (paymentMethod === "sepa_debit" && bankName) {
       label = `Debit ${amount} from ${bankName}`;
     }
     submitButton.innerText = label;
@@ -493,8 +503,9 @@
   window.updateButtonLabel = updateButtonLabel;
 
   const selectCountry = country => {
-    const selector = document.getElementById('country');
-    selector.querySelector(`option[value=${country}]`).selected = 'selected';
+    const selector = document.getElementById("country");
+    selector.querySelector(`option[value=${country}]`).selected =
+      "selected";
     selector.className = `field ${country}`;
 
     // Trigger the methods to show relevant fields and payment methods on page load.
@@ -505,55 +516,84 @@
   // Show only form fields that are relevant to the selected country.
   const showRelevantFormFields = country => {
     if (!country) {
-      country = form.querySelector('select[name=country] option:checked').value;
+      country = form.querySelector(
+        "select[name=country] option:checked"
+      ).value;
     }
-    const zipLabel = form.querySelector('label.zip');
+    const zipLabel = form.querySelector("label.zip");
     // Only show the state input for the United States.
-    zipLabel.parentElement.classList.toggle('with-state', country === 'US');
+    zipLabel.parentElement.classList.toggle(
+      "with-state",
+      country === "US"
+    );
     // Update the ZIP label to make it more relevant for each country.
-    form.querySelector('label.zip span').innerText =
-      country === 'US' ? 'ZIP' : country === 'GB' ? 'Postcode' : 'Postal Code';
+    form.querySelector("label.zip span").innerText =
+      country === "US"
+        ? "ZIP"
+        : country === "GB"
+        ? "Postcode"
+        : "Postal Code";
   };
 
   // Show only the payment methods that are relevant to the selected country.
   const showRelevantPaymentMethods = country => {
     if (!country) {
-      country = form.querySelector('select[name=country] option:checked').value;
+      country = form.querySelector(
+        "select[name=country] option:checked"
+      ).value;
     }
-    const paymentInputs = form.querySelectorAll('input[name=payment]');
+    const paymentInputs = form.querySelectorAll(
+      "input[name=payment]"
+    );
     for (let i = 0; i < paymentInputs.length; i++) {
       let input = paymentInputs[i];
       input.parentElement.classList.toggle(
-        'visible',
-        input.value === 'card' ||
+        "visible",
+        input.value === "card" ||
           (config.paymentMethods.includes(input.value) &&
             paymentMethods[input.value].countries.includes(country) &&
-            paymentMethods[input.value].currencies.includes(config.currency))
+            paymentMethods[input.value].currencies.includes(
+              config.currency
+            ))
       );
     }
 
     // Hide the tabs if card is the only available option.
-    const paymentMethodsTabs = document.getElementById('payment-methods');
+    const paymentMethodsTabs = document.getElementById(
+      "payment-methods"
+    );
     paymentMethodsTabs.classList.toggle(
-      'visible',
-      paymentMethodsTabs.querySelectorAll('li.visible').length > 1
+      "visible",
+      paymentMethodsTabs.querySelectorAll("li.visible").length > 1
     );
 
     // Check the first payment option again.
-    paymentInputs[0].checked = 'checked';
-    form.querySelector('.payment-info.card').classList.add('visible');
-    form.querySelector('.payment-info.ideal').classList.remove('visible');
-    form.querySelector('.payment-info.sepa_debit').classList.remove('visible');
-    form.querySelector('.payment-info.wechat').classList.remove('visible');
-    form.querySelector('.payment-info.redirect').classList.remove('visible');
+    paymentInputs[0].checked = "checked";
+    form.querySelector(".payment-info.card").classList.add("visible");
+    form
+      .querySelector(".payment-info.ideal")
+      .classList.remove("visible");
+    form
+      .querySelector(".payment-info.sepa_debit")
+      .classList.remove("visible");
+    form
+      .querySelector(".payment-info.wechat")
+      .classList.remove("visible");
+    form
+      .querySelector(".payment-info.redirect")
+      .classList.remove("visible");
     updateButtonLabel(paymentInputs[0].value);
   };
 
   // Listen to changes to the payment method selector.
-  for (let input of document.querySelectorAll('input[name=payment]')) {
-    input.addEventListener('change', event => {
+  for (let input of document.querySelectorAll(
+    "input[name=payment]"
+  )) {
+    input.addEventListener("change", event => {
       event.preventDefault();
-      const payment = form.querySelector('input[name=payment]:checked').value;
+      const payment = form.querySelector(
+        "input[name=payment]:checked"
+      ).value;
       const flow = paymentMethods[payment].flow;
 
       // Update button label.
@@ -561,26 +601,26 @@
 
       // Show the relevant details, whether it's an extra element or extra information for the user.
       form
-        .querySelector('.payment-info.card')
-        .classList.toggle('visible', payment === 'card');
+        .querySelector(".payment-info.card")
+        .classList.toggle("visible", payment === "card");
       form
-        .querySelector('.payment-info.ideal')
-        .classList.toggle('visible', payment === 'ideal');
+        .querySelector(".payment-info.ideal")
+        .classList.toggle("visible", payment === "ideal");
       form
-        .querySelector('.payment-info.sepa_debit')
-        .classList.toggle('visible', payment === 'sepa_debit');
+        .querySelector(".payment-info.sepa_debit")
+        .classList.toggle("visible", payment === "sepa_debit");
       form
-        .querySelector('.payment-info.wechat')
-        .classList.toggle('visible', payment === 'wechat');
+        .querySelector(".payment-info.wechat")
+        .classList.toggle("visible", payment === "wechat");
       form
-        .querySelector('.payment-info.redirect')
-        .classList.toggle('visible', flow === 'redirect');
+        .querySelector(".payment-info.redirect")
+        .classList.toggle("visible", flow === "redirect");
       form
-        .querySelector('.payment-info.receiver')
-        .classList.toggle('visible', flow === 'receiver');
+        .querySelector(".payment-info.receiver")
+        .classList.toggle("visible", flow === "receiver");
       document
-        .getElementById('card-errors')
-        .classList.remove('visible', payment !== 'card');
+        .getElementById("card-errors")
+        .classList.remove("visible", payment !== "card");
     });
   }
 
@@ -588,8 +628,8 @@
   let country = config.country;
   // Override it if a valid country is passed as a URL parameter.
   var urlParams = new URLSearchParams(window.location.search);
-  let countryParam = urlParams.get('country')
-    ? urlParams.get('country').toUpperCase()
+  let countryParam = urlParams.get("country")
+    ? urlParams.get("country").toUpperCase()
     : config.country;
   if (form.querySelector(`option[value="${countryParam}"]`)) {
     country = countryParam;
