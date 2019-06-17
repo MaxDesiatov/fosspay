@@ -6,10 +6,7 @@ import sys
 import os
 import locale
 import stripe
-from fosspay.stripe_types import Source
-from flask import Flask, render_template, jsonify, request, send_from_directory
-from dotenv import load_dotenv, find_dotenv
-
+from flask import Flask, render_template, jsonify, request
 
 from fosspay.config import _cfg, _cfgi
 from fosspay.database import db, init_db
@@ -102,13 +99,11 @@ def make_payment_intent():
     try:
         amount = 500
         currency = data['currency']
-        # START TODO refactor this code
         payment_methods = _cfg('payment-methods').split(', ')
         while("" in payment_methods) : 
             payment_methods.remove("") 
         if len(payment_methods) == 0 :
             payment_methods = ['card']
-        # END TODO 
         payment_intent = stripe.PaymentIntent.create(
             payment_method=data['payment_method_id'],
             amount=1099,
@@ -117,25 +112,8 @@ def make_payment_intent():
             confirm=True,
         )
         return jsonify({'paymentIntent': payment_intent})
-        # return generate_payment_response(payment_intent)
     except Exception as e:
         return jsonify(e), 403
-
-
-def generate_payment_response(intent):
-  if intent.status == 'requires_action' and intent.next_action.type == 'use_stripe_sdk':
-    # Tell the client to handle the action
-    return json.dumps({
-        'requires_action': True,
-        'payment_intent_client_secret': intent.client_secret,
-    }), 200
-  elif intent.status == 'succeeded':
-    # The payment didn’t need any additional actions and completed!
-    # Handle post-payment fulfillment
-    return json.dumps({'success': True}), 200
-  else:
-    # Invalid status
-    return json.dumps({'error': 'Invalid PaymentIntent status'}), 500
 
 @app.route('/support/confirm_payment/<string:id>/status', methods=['GET'])
 def retrieve_payment_intent_status(id):
