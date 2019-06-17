@@ -44,6 +44,7 @@ class Store {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          amount: this.getPaymentTotal(),
           currency,
           items,
           payment_method_id

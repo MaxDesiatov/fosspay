@@ -97,8 +97,7 @@ def make_payment_intent():
     # Creates a new PaymentIntent with items from the cart.
     data = json.loads(request.data)
     try:
-        amount = 500
-        currency = data['currency']
+        amount = data['amount']
         payment_methods = _cfg('payment-methods').split(', ')
         while("" in payment_methods) : 
             payment_methods.remove("") 
@@ -106,7 +105,7 @@ def make_payment_intent():
             payment_methods = ['card']
         payment_intent = stripe.PaymentIntent.create(
             payment_method=data['payment_method_id'],
-            amount=1099,
+            amount=amount,
             currency='usd',
             confirmation_method='manual',
             confirm=True,
