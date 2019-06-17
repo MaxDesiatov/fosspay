@@ -44,7 +44,7 @@ class Store {
   // Retrieve the configuration from the API.
   async getConfig() {
     try {
-      const response = await fetch("/support/config");
+      const response = await fetch(absoluteLink('config'));
       const config = await response.json();
       if (config.stripePublishableKey.includes("live")) {
         // Hide the demo notice if the publishable key is in live mode.
@@ -60,7 +60,7 @@ class Store {
   // Create the PaymentIntent with the cart details.
   async createPaymentIntent({ currency, items, payment_method_id }) {
     try {
-      const response = await fetch("/support/confirm_payment", {
+      const response = await fetch(absoluteLink("confirm_payment"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

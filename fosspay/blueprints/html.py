@@ -89,7 +89,7 @@ def index():
             patreon_count=patreon_count,
             patreon_sum=patreon_sum,
             lp_count=lp_count,
-            lp_sum=lp_sum, currency=currency)
+            lp_sum=lp_sum, currency=currency, absolute_link=absolute_link(""))
 
 @html.route("/setup", methods=["POST"])
 def setup():

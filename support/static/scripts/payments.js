@@ -168,7 +168,7 @@
         } else {
           // The card action has been handled
           // The PaymentIntent can be confirmed again on the server
-          fetch('/support/confirm_payment', {
+          fetch(absoluteLink('confirm_payment'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -414,7 +414,7 @@
     start = start ? start : Date.now();
     const endStates = ['succeeded', 'processing', 'canceled'];
     // Retrieve the PaymentIntent status from our server.
-    const rawResponse = await fetch(`support/confirm_payment/${paymentIntent}/status`);
+    const rawResponse = await fetch(absoluteLink(`confirm_payment/${paymentIntent}/status`));
     const response = await rawResponse.json();
     if (
       !endStates.includes(response.paymentIntent.status) &&
