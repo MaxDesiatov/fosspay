@@ -163,33 +163,34 @@
   function handleAction(response) {
     stripe
       .handleCardAction(response.payment_intent_client_secret)
-      .then(function(result) {
+      .then(async function(result) {
         if (result.error) {
           // Show error in payment form
         } else {
           // The card action has been handled
           // The PaymentIntent can be confirmed again on the server
-          console.log(window.donation.amount);
-          fetch(absoluteLink("confirm_payment"), {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              payment_intent_id: result.paymentIntent.id,
-              amount: store.getPaymentTotal()
-            })
-          })
-            .then(function(confirmResult) {
-              return confirmResult.json();
-            })
-            .then(handleServerResponse);
+          const resultConfirmPayment = await fetch(
+            absoluteLink("confirm_payment"),
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                payment_intent_id: result.paymentIntent.id,
+                amount: store.getPaymentTotal()
+              })
+            }
+          );
+          const data = await resultConfirmPayment.json();
+          handleServerResponse(data);
         }
       });
   }
+
   // Create the Payment Request Button.
   const paymentRequestButton = elements.create(
-    'paymentRequestButton',
+    "paymentRequestButton",
     {
       paymentRequest
     }
