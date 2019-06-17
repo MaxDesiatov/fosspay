@@ -9,8 +9,8 @@
 
   // Array used for translation of index.js sentences. See contrib/fr/overrides/index.html for example use
   const i18n = {
-      "Monthly Donation": "Monthly Donation",
-      "One-time Donation": "One-time Donation",
+      "Monthly Sponsorship": "Monthly Sponsorship",
+      "One-time Sponsorship": "One-time Sponsorship",
       "Donate ": "Donate ",
       "Submitting...": "Submitting...",
       "Donate": "Donate"
@@ -435,6 +435,7 @@
             </label>
           </fieldset>
         </div>
+        <p>Total: <span id="payment-amount">0</span>  <span id="payment-frequency"></span></p>
         <div class="payment-info redirect">
           <p class="notice">You’ll be redirected to the banking site to complete your payment.</p>
         </div>
@@ -446,7 +447,7 @@
           <p class="notice">Click the button below to generate a QR code for WeChat.</p>
         </div>
       </section>
-      <button type="submit">Pay</button>
+      <button type="submit">Sponsor</button>
     </form>
     <div id="card-errors" class="element-errors"></div>
     <div id="iban-errors" class="element-errors"></div>

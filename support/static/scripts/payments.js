@@ -20,6 +20,7 @@
   // Create references to the main form and its submit button.
   const form = document.getElementById('payment-form');
   const submitButton = form.querySelector('button[type=submit]');
+  let amountSpan = document.getElementById("payment-amount");
 
   // Global variable to store the PaymentIntent object.
   let paymentIntent;
@@ -228,7 +229,7 @@
     event.preventDefault();
 
     // Retrieve the user information from the form.
-
+    // TODO information from form definitely should be used somewhere
     const name = form.querySelector('input[name=name]').value;
   
     // Disable the Pay button to prevent multiple click events.
@@ -466,19 +467,23 @@
 
   // Update the main button to reflect the payment method being selected.
   const updateButtonLabel = (paymentMethod, bankName) => {
+    
     let amount = store.formatPrice(store.getPaymentTotal(), config.currency);
     let name = paymentMethods[paymentMethod].name;
-    let label = `Pay ${amount}`;
+    let label = `Sponsor ${amount}`;
     if (paymentMethod !== 'card') {
-      label = `Pay ${amount} with ${name}`;
+      label = `Sponsor ${amount} with ${name}`;
     }
     if (paymentMethod === 'wechat') {
-      label = `Generate QR code to pay ${amount} with ${name}`;
+      label = `Generate QR code to sponsor ${amount} with ${name}`;
     }
     if (paymentMethod === 'sepa_debit' && bankName) {
       label = `Debit ${amount} from ${bankName}`;
     }
     submitButton.innerText = label;
+
+    // Update above button text
+    amountSpan.innerText = amount;
   };
 
   // Move updateButtonLabel to global to fire it on donation amount change

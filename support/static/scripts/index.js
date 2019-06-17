@@ -5,9 +5,11 @@
     project: null,
     comment: null
   };
+  let donationFrequencySpan = document.getElementById(
+    "payment-frequency"
+  );
 
-  // Set default value that will be overwrite in payments.js
-  window.updateButtonLabel = ()=>{}
+  updateFrequencySpan(window.donation.type);
 
   function selectAmount(e) {
     e.preventDefault();
@@ -24,7 +26,7 @@
     }
 
     // update Pay button
-    updateButtonLabel('card')
+    if (updateButtonLabel) updateButtonLabel("card");
   }
 
   function selectFrequency(e) {
@@ -32,6 +34,17 @@
     document.querySelector(".frequencies .active").classList.remove("active");
     e.target.classList.add("active");
     donation.type = e.target.dataset.frequency;
+
+    // update frequency
+    updateFrequencySpan(donation.type);
+  }
+
+  function updateFrequencySpan(type=""){
+    let text =
+      type == "monthly"
+        ? i18n["Monthly Sponsorship"]
+        : i18n["One-time Sponsorship"];
+    donationFrequencySpan.innerText = text.toLowerCase();
   }
 
   var amounts = document.querySelectorAll(".amounts button");

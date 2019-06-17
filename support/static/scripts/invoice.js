@@ -10,7 +10,7 @@
       key: window.stripe_key,
       locale: 'auto',
       description: "Invoice " + invoice,
-      panelLabel: "Pay {{amount}}",
+      panelLabel: "Sponsor {{amount}}",
       amount: amount,
       token: function (token) {
         e.target.setAttribute("disabled", "");
