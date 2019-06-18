@@ -5,11 +5,12 @@
   window.your_name = "{{ _cfg("your-name") }}";
   window.default_amount = {{ _cfg("default-amount") }};
   window.default_type = "{{ _cfg("default-type") }}";
+  window.absoluteLink = (path="") => "{{ absolute_link }}" + path;
 
   // Array used for translation of index.js sentences. See contrib/fr/overrides/index.html for example use
   const i18n = {
-      "Monthly Donation": "Monthly Donation",
-      "One-time Donation": "One-time Donation",
+      "Monthly Sponsorship": "Monthly Sponsorship",
+      "One-time Sponsorship": "One-time Sponsorship",
       "Donate ": "Donate ",
       "Submitting...": "Submitting...",
       "Donate": "Donate"
@@ -286,16 +287,6 @@
       </div>
     </div>
   </div>
-  <div class="row">
-    <div class="col-md-4 col-md-offset-4">
-      <div class="alert alert-danger hidden" id="errors">
-        <p></p>
-      </div>
-      <button class="btn btn-block btn-success" id="donate-button">
-        Sponsor
-      </button>
-    </div>
-  </div>
 </div>
 <div id="main" class="loading">
   <div id="checkout">
@@ -444,6 +435,7 @@
             </label>
           </fieldset>
         </div>
+        <p>Total: <span id="payment-amount">0</span>  <span id="payment-frequency"></span></p>
         <div class="payment-info redirect">
           <p class="notice">You’ll be redirected to the banking site to complete your payment.</p>
         </div>
@@ -455,7 +447,7 @@
           <p class="notice">Click the button below to generate a QR code for WeChat.</p>
         </div>
       </section>
-      <button type="submit">Pay</button>
+      <button type="submit">Sponsor</button>
     </form>
     <div id="card-errors" class="element-errors"></div>
     <div id="iban-errors" class="element-errors"></div>
@@ -483,7 +475,6 @@
     </div>
   </div>
   </div>
-  <div id="summary">
   <header>
     <h1>Order Summary</h1>
   </header>

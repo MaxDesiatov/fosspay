@@ -5,10 +5,10 @@
             return;
         }
 
-        var handler = StripeCheckout.configure({
+        const handler = StripeCheckout.configure({
             name: your_name,
             key: window.stripe_key,
-            locale: 'auto',
+            locale: "auto",
             description: "Invoice " + invoice,
             panelLabel: "Pay {{amount}}",
             amount: amount,
@@ -16,21 +16,25 @@
                 e.target.setAttribute("disabled", "");
                 e.target.textContent = "Submitting...";
 
-                var data = new FormData();
+                const data = new FormData();
                 data.append("stripe_token", token.id);
                 data.append("email", token.email);
                 data.append("amount", amount);
                 data.append("type", "once");
                 data.append("comment", comment);
-                var xhr = new XMLHttpRequest();
+                const xhr = new XMLHttpRequest();
                 xhr.open("POST", "../donate");
                 xhr.onload = function() {
-                    var res = JSON.parse(this.responseText);
+                    const res = JSON.parse(this.responseText);
                     if (res.success) {
-                        document.getElementById("donation-stuff").classList.add("hidden");
-                        document.getElementById("thanks").classList.remove("hidden");
+                        document
+                            .getElementById("donation-stuff")
+                            .classList.add("hidden");
+                        document
+                            .getElementById("thanks")
+                            .classList.remove("hidden");
                     } else {
-                        var errors = document.getElementById("errors");
+                        const errors = document.getElementById("errors");
                         errors.classList.remove("hidden");
                         errors.querySelector("p").textContent = res.reason;
                         e.target.removeAttribute("disabled");
@@ -44,4 +48,3 @@
         handler.open();
     });
 })();
-

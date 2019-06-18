@@ -12,726 +12,613 @@
  */
 
 (async () => {
-  'use strict';
+    "use strict";
 
-  // Retrieve the configuration for the store.
-  const config = await store.getConfig();
+    // Retrieve the configuration for the store.
+    const config = await store.getConfig();
 
-  // Create references to the main form and its submit button.
-  const form = document.getElementById('payment-form');
-  const submitButton = form.querySelector('button[type=submit]');
+    // Create references to the main form and its submit button.
+    const form = document.getElementById("payment-form");
+    const submitButton = form.querySelector("button[type=submit]");
+    const amountSpan = document.getElementById("payment-amount");
 
-  // Global variable to store the PaymentIntent object.
-  let paymentIntent;
+    // Global variable to store the PaymentIntent object.
+    let paymentIntent;
 
-  /**
-   * Setup Stripe Elements.
-   */
+    /**
+     * Setup Stripe Elements.
+     */
 
-  // Create a Stripe client.
-  const stripe = Stripe(config.stripePublishableKey);
+    // Create a Stripe client.
+    const stripe = Stripe(config.stripePublishableKey);
 
-  // Create an instance of Elements.
-  const elements = stripe.elements();
+    // Create an instance of Elements.
+    const elements = stripe.elements();
 
-  // Prepare the styles for Elements.
-  const style = {
-    base: {
-      iconColor: '#666ee8',
-      color: '#31325f',
-      fontWeight: 400,
-      fontFamily:
-        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
-      fontSmoothing: 'antialiased',
-      fontSize: '15px',
-      '::placeholder': {
-        color: '#aab7c4',
-      },
-      ':-webkit-autofill': {
-        color: '#666ee8',
-      },
-    },
-  };
+    // Prepare the styles for Elements.
+    const style = {
+        base: {
+            iconColor: "#666ee8",
+            color: "#31325f",
+            fontWeight: 400,
+            fontFamily:
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
+            fontSmoothing: "antialiased",
+            fontSize: "15px",
+            "::placeholder": {
+                color: "#aab7c4"
+            },
+            ":-webkit-autofill": {
+                color: "#666ee8"
+            }
+        }
+    };
 
-  /**
-   * Implement a Stripe Card Element that matches the look-and-feel of the app.
-   *
-   * This makes it easy to collect debit and credit card payments information.
-   */
+    /**
+     * Implement a Stripe Card Element that matches the look-and-feel of the app.
+     *
+     * This makes it easy to collect debit and credit card payments information.
+     */
 
-  // Create a Card Element and pass some custom styles to it.
-  const card = elements.create('card', {style});
+    // Create a Card Element and pass some custom styles to it.
+    const card = elements.create("card", { style });
 
-  // Mount the Card Element on the page.
-  card.mount('#card-element');
+    // Mount the Card Element on the page.
+    card.mount("#card-element");
 
-  // Monitor change events on the Card Element to display any errors.
-  card.on('change', ({error}) => {
-    const cardErrors = document.getElementById('card-errors');
-    if (error) {
-      cardErrors.textContent = error.message;
-      cardErrors.classList.add('visible');
-    } else {
-      cardErrors.classList.remove('visible');
-    }
-    // Re-enable the Pay button.
-    submitButton.disabled = false;
-  });
-
-  /**
-   * Implement a Stripe IBAN Element that matches the look-and-feel of the app.
-   *
-   * This makes it easy to collect bank account information.
-   */
-
-  // Create a IBAN Element and pass the right options for styles and supported countries.
-  const ibanOptions = {
-    style,
-    supportedCountries: ['SEPA'],
-  };
-  const iban = elements.create('iban', ibanOptions);
-
-  // Mount the IBAN Element on the page.
-  iban.mount('#iban-element');
-
-  // Monitor change events on the IBAN Element to display any errors.
-  iban.on('change', ({error, bankName}) => {
-    const ibanErrors = document.getElementById('iban-errors');
-    if (error) {
-      ibanErrors.textContent = error.message;
-      ibanErrors.classList.add('visible');
-    } else {
-      ibanErrors.classList.remove('visible');
-      if (bankName) {
-        updateButtonLabel('sepa_debit', bankName);
-      }
-    }
-    // Re-enable the Pay button.
-    submitButton.disabled = false;
-  });
-
-  /**
-   * Add an iDEAL Bank selection Element that matches the look-and-feel of the app.
-   *
-   * This allows you to send the customer directly to their iDEAL enabled bank.
-   */
-
-  // Create a iDEAL Bank Element and pass the style options, along with an extra `padding` property.
-  const idealBank = elements.create('idealBank', {
-    style: {base: Object.assign({padding: '10px 15px'}, style.base)},
-  });
-
-  // Mount the iDEAL Bank Element on the page.
-  idealBank.mount('#ideal-bank-element');
-
-  /**
-   * Implement a Stripe Payment Request Button Element.
-   *
-   * This automatically supports the Payment Request API (already live on Chrome),
-   * as well as Apple Pay on the Web on Safari, Google Pay, and Microsoft Pay.
-   * When of these two options is available, this element adds a “Pay” button on top
-   * of the page to let users pay in just a click (or a tap on mobile).
-   */
-
-  // Create the payment request.
-  const paymentRequest = stripe.paymentRequest({
-    country: config.stripeCountry,
-    currency: config.currency,
-    total: {
-      label: 'Total',
-      amount: store.getPaymentTotal(),
-    },
-    requestShipping: false,
-    requestPayerEmail: true
-  });
-
-  // Callback when a payment method is created.
-  paymentRequest.on('paymentmethod', async event => {
-    // Confirm the PaymentIntent with the payment method returned from the payment request.
-    const {error} = await stripe.confirmPaymentIntent(
-      paymentIntent.client_secret,
-      {
-        payment_method: event.paymentMethod.id
-      }
-    );
-    if (error) {
-      // Report to the browser that the payment failed.
-      event.complete('fail');
-      handlePayment({error});
-    } else {
-      // Report to the browser that the confirmation was successful, prompting
-      // it to close the browser payment method collection interface.
-      event.complete('success');
-      // Let Stripe.js handle the rest of the payment flow, including 3D Secure if needed.
-      const response = await stripe.handleCardPayment(
-        paymentIntent.client_secret
-      );
-      handlePayment(response);
-    }
-  });
-
-  // Create the Payment Request Button.
-  const paymentRequestButton = elements.create('paymentRequestButton', {
-    paymentRequest,
-  });
-
-  // Check if the Payment Request is available (or Apple Pay on the Web).
-  const paymentRequestSupport = await paymentRequest.canMakePayment();
-  if (paymentRequestSupport) {
-    // Display the Pay button by mounting the Element in the DOM.
-    paymentRequestButton.mount('#payment-request-button');
-    // Replace the instruction.
-    document.querySelector('.instruction').innerText =
-      'Or enter your payment details below';
-    // Show the payment request section.
-    document.getElementById('payment-request').classList.add('visible');
-  }
-
-  /**
-   * Handle the form submission.
-   *
-   * This uses Stripe.js to confirm the PaymentIntent using payment details collected
-   * with Elements.
-   *
-   * Please note this form is not submitted when the user chooses the "Pay" button
-   * or Apple Pay, Google Pay, and Microsoft Pay since they provide name and
-   * shipping information directly.
-   */
-
-  // Listen to changes to the user-selected country.
-  form
-    .querySelector('select[name=country]')
-    .addEventListener('change', event => {
-      event.preventDefault();
-      selectCountry(event.target.value);
+    // Monitor change events on the Card Element to display any errors.
+    card.on("change", ({ error }) => {
+        const cardErrors = document.getElementById("card-errors");
+        if (error) {
+            cardErrors.textContent = error.message;
+            cardErrors.classList.add("visible");
+        } else {
+            cardErrors.classList.remove("visible");
+        }
+        // Re-enable the Pay button.
+        submitButton.disabled = false;
     });
 
-  // Submit handler for our payment form.
-  form.addEventListener('submit', async event => {
-    event.preventDefault();
+    /**
+     * Implement a Stripe IBAN Element that matches the look-and-feel of the app.
+     *
+     * This makes it easy to collect bank account information.
+     */
 
-    // Retrieve the user information from the form.
-    const payment = form.querySelector('input[name=payment]:checked').value;
-    const name = form.querySelector('input[name=name]').value;
-    const country = form.querySelector('select[name=country] option:checked')
-      .value;
-    const email = form.querySelector('input[name=email]').value;
-    // Disable the Pay button to prevent multiple click events.
-    submitButton.disabled = true;
-    submitButton.textContent = 'Processing…';
+    // Create a IBAN Element and pass the right options for styles and supported countries.
+    const ibanOptions = {
+        style,
+        supportedCountries: ["SEPA"]
+    };
+    const iban = elements.create("iban", ibanOptions);
 
-    if (payment === 'card') {
-      // Let Stripe.js handle the confirmation of the PaymentIntent with the card Element.
-      const response = await stripe.handleCardPayment(
-        paymentIntent.client_secret,
-        card,
-        {
-          payment_method_data: {
-            billing_details: {
-              name,
-            },
-          },
+    // Mount the IBAN Element on the page.
+    iban.mount("#iban-element");
+
+    // Monitor change events on the IBAN Element to display any errors.
+    iban.on("change", ({ error, bankName }) => {
+        const ibanErrors = document.getElementById("iban-errors");
+        if (error) {
+            ibanErrors.textContent = error.message;
+            ibanErrors.classList.add("visible");
+        } else {
+            ibanErrors.classList.remove("visible");
+            if (bankName) {
+                updateButtonLabel("sepa_debit", bankName);
+            }
         }
-      );
-      handlePayment(response);
-    } else if (payment === 'sepa_debit') {
-      // Confirm the PaymentIntent with the IBAN Element and additional SEPA Debit source data.
-      const {error} = await stripe.createSource(iban, {
-        type: 'sepa_debit',
-        currency: 'eur',
-        owner: {
-          name,
-          email,
-        },
-        mandate: {
-          // Automatically send a mandate notification email to your customer
-          // once the source is charged.
-          notification_method: 'email',
-        },
-        metadata: {
-          paymentIntent: paymentIntent.id,
-        },
-      });
-      if (error) {
-        handlePayment({error});
-        return;
-      }
-      // Poll the PaymentIntent status.
-      pollPaymentIntentStatus(paymentIntent.id);
-    } else {
-      // Prepare all the Stripe source common data.
-      const sourceData = {
-        type: payment,
-        amount: paymentIntent.amount,
-        currency: paymentIntent.currency,
-        owner: {
-          name,
-          email,
-        },
-        redirect: {
-          return_url: window.location.href,
-        },
-        statement_descriptor: 'Stripe Payments Demo',
-        metadata: {
-          paymentIntent: paymentIntent.id,
-        },
-      };
+        // Re-enable the Pay button.
+        submitButton.disabled = false;
+    });
 
-      // Add extra source information which are specific to a payment method.
-      switch (payment) {
-        case 'ideal':
-          // iDEAL: Add the selected Bank from the iDEAL Bank Element.
-          const {source} = await stripe.createSource(idealBank, sourceData);
-          handleSourceActiviation(source);
-          return;
-          break;
-        case 'sofort':
-          // SOFORT: The country is required before redirecting to the bank.
-          sourceData.sofort = {
-            country,
-          };
-          break;
-        case 'ach_credit_transfer':
-          // ACH Bank Transfer: Only supports USD payments, edit the default config to try it.
-          // In test mode, we can set the funds to be received via the owner email.
-          sourceData.owner.email = `amount_${paymentIntent.amount}@example.com`;
-          break;
-      }
+    /**
+     * Add an iDEAL Bank selection Element that matches the look-and-feel of the app.
+     *
+     * This allows you to send the customer directly to their iDEAL enabled bank.
+     */
 
-      // Create a Stripe source with the common data and extra information.
-      const {source} = await stripe.createSource(sourceData);
-      handleSourceActiviation(source);
+    // Create a iDEAL Bank Element and pass the style options, along with an extra `padding` property.
+    const idealBank = elements.create("idealBank", {
+        style: {
+            base: Object.assign({ padding: "10px 15px" }, style.base)
+        }
+    });
+
+    // Mount the iDEAL Bank Element on the page.
+    idealBank.mount("#ideal-bank-element");
+
+    /**
+     * Implement a Stripe Payment Request Button Element.
+     *
+     * This automatically supports the Payment Request API (already live on Chrome),
+     * as well as Apple Pay on the Web on Safari, Google Pay, and Microsoft Pay.
+     * When of these two options is available, this element adds a “Pay” button on top
+     * of the page to let users pay in just a click (or a tap on mobile).
+     */
+
+    // Create the payment request.
+    const paymentRequest = stripe.paymentRequest({
+        country: config.stripeCountry,
+        currency: config.currency,
+        total: {
+            label: "Total",
+            amount: store.getPaymentTotal()
+        },
+        requestShipping: false,
+        requestPayerEmail: true
+    });
+
+    function handleServerResponse(response) {
+        if (response.error) {
+            // Handle error
+        } else if (response.requires_action) {
+            // Handle required action
+            handleAction(response);
+        } else {
+            // Handle success
+        }
     }
-  });
 
-  // Handle new PaymentIntent result
-  const handlePayment = paymentResponse => {
-    const {paymentIntent, error} = paymentResponse;
+    async function handleAction(response) {
+        const handleCardActionResult = await stripe.handleCardAction(
+            response.payment_intent_client_secret
+        );
 
-    const mainElement = document.getElementById('main');
-    const confirmationElement = document.getElementById('confirmation');
-
-    if (error) {
-      mainElement.classList.remove('processing');
-      mainElement.classList.remove('receiver');
-      confirmationElement.querySelector('.error-message').innerText =
-        error.message;
-      mainElement.classList.add('error');
-    } else if (paymentIntent.status === 'succeeded') {
-      // Success! Payment is confirmed. Update the interface to display the confirmation screen.
-      mainElement.classList.remove('processing');
-      mainElement.classList.remove('receiver');
-      // Update the note about receipt and shipping (the payment has been fully confirmed by the bank).
-      confirmationElement.querySelector('.note').innerText =
-        'We just sent your receipt to your email address, and your items will be on their way shortly.';
-      mainElement.classList.add('success');
-    } else if (paymentIntent.status === 'processing') {
-      // Success! Now waiting for payment confirmation. Update the interface to display the confirmation screen.
-      mainElement.classList.remove('processing');
-      // Update the note about receipt and shipping (the payment is not yet confirmed by the bank).
-      confirmationElement.querySelector('.note').innerText =
-        'We’ll send your receipt and ship your items as soon as your payment is confirmed.';
-      mainElement.classList.add('success');
-    } else {
-      // Payment has failed.
-      mainElement.classList.remove('success');
-      mainElement.classList.remove('processing');
-      mainElement.classList.remove('receiver');
-      mainElement.classList.add('error');
+        if (handleCardActionResult.error) {
+            // Show error in payment form
+        } else {
+            // The card action has been handled
+            // The PaymentIntent can be confirmed again on the server
+            const resultConfirmPayment = await fetch(
+                absoluteLink("confirm_payment"),
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        payment_intent_id:
+                            handleCardActionResult.paymentIntent.id,
+                        amount: store.getPaymentTotal()
+                    })
+                }
+            );
+            const data = await resultConfirmPayment.json();
+            handleServerResponse(data);
+        }
     }
-  };
 
-  // Handle activation of payment sources not yet supported by PaymentIntents
-  const handleSourceActiviation = source => {
-    const mainElement = document.getElementById('main');
-    const confirmationElement = document.getElementById('confirmation');
-    switch (source.flow) {
-      case 'none':
-        // Normally, sources with a `flow` value of `none` are chargeable right away,
-        // but there are exceptions, for instance for WeChat QR codes just below.
-        if (source.type === 'wechat') {
-          // Display the QR code.
-          const qrCode = new QRCode('wechat-qrcode', {
-            text: source.wechat.qr_code_url,
-            width: 128,
-            height: 128,
-            colorDark: '#424770',
-            colorLight: '#f8fbfd',
-            correctLevel: QRCode.CorrectLevel.H,
-          });
-          // Hide the previous text and update the call to action.
-          form.querySelector('.payment-info.wechat p').style.display = 'none';
-          let amount = store.formatPrice(
+    // Create the Payment Request Button.
+    const paymentRequestButton = elements.create("paymentRequestButton", {
+        paymentRequest
+    });
+
+    // Check if the Payment Request is available (or Apple Pay on the Web).
+    const paymentRequestSupport = await paymentRequest.canMakePayment();
+    if (paymentRequestSupport) {
+        // Display the Pay button by mounting the Element in the DOM.
+        paymentRequestButton.mount("#payment-request-button");
+        // Replace the instruction.
+        document.querySelector(".instruction").innerText =
+            "Or enter your payment details below";
+        // Show the payment request section.
+        document.getElementById("payment-request").classList.add("visible");
+    }
+
+    /**
+     * Handle the form submission.
+     *
+     * This uses Stripe.js to confirm the PaymentIntent using payment details collected
+     * with Elements.
+     *
+     * Please note this form is not submitted when the user chooses the "Pay" button
+     * or Apple Pay, Google Pay, and Microsoft Pay since they provide name and
+     * shipping information directly.
+     */
+
+    // Listen to changes to the user-selected country.
+    form.querySelector("select[name=country]").addEventListener(
+        "change",
+        event => {
+            event.preventDefault();
+            selectCountry(event.target.value);
+        }
+    );
+
+    // Submit handler for our payment form.
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        // Retrieve the user information from the form.
+        // TODO information from form definitely should be used somewhere
+        const name = form.querySelector("input[name=name]").value;
+
+        // Disable the Pay button to prevent multiple click events.
+        submitButton.disabled = true;
+        submitButton.textContent = "Processing…";
+        const { paymentMethod, error } = await stripe.createPaymentMethod(
+            "card",
+            card,
+            {
+                billing_details: { name: name }
+            }
+        );
+        if (error) {
+            // Show error in payment form
+        } else {
+            // Send paymentMethod.id to your server (see Step 2)
+            const response = await store.createPaymentIntent({
+                payment_method_id: paymentMethod.id,
+                currency: config.currency,
+                items: [
+                    {
+                        type: "sku",
+                        parent: "pSku",
+                        quantity: 1
+                    }
+                ]
+            });
+            paymentIntent = response.paymentIntent;
+            handleServerResponse(response);
+        }
+    });
+
+    // Handle new PaymentIntent result
+    const handlePayment = paymentResponse => {
+        const { paymentIntent, error } = paymentResponse;
+
+        const mainElement = document.getElementById("main");
+        const confirmationElement = document.getElementById("confirmation");
+
+        if (error) {
+            mainElement.classList.remove("processing");
+            mainElement.classList.remove("receiver");
+            confirmationElement.querySelector(".error-message").innerText =
+                error.message;
+            mainElement.classList.add("error");
+        } else if (paymentIntent.status === "succeeded") {
+            // Success! Payment is confirmed. Update the interface to display the confirmation screen.
+            mainElement.classList.remove("processing");
+            mainElement.classList.remove("receiver");
+            // Update the note about receipt and shipping (the payment has been fully confirmed by the bank).
+            confirmationElement.querySelector(".note").innerText =
+                "We just sent your receipt to your email address, and your items will be on their way shortly.";
+            mainElement.classList.add("success");
+        } else if (paymentIntent.status === "processing") {
+            // Success! Now waiting for payment confirmation. Update the interface to display the confirmation screen.
+            mainElement.classList.remove("processing");
+            // Update the note about receipt and shipping (the payment is not yet confirmed by the bank).
+            confirmationElement.querySelector(".note").innerText =
+                "We’ll send your receipt and ship your items as soon as your payment is confirmed.";
+            mainElement.classList.add("success");
+        } else {
+            // Payment has failed.
+            mainElement.classList.remove("success");
+            mainElement.classList.remove("processing");
+            mainElement.classList.remove("receiver");
+            mainElement.classList.add("error");
+        }
+    };
+
+    /**
+     * Monitor the status of a source after a redirect flow.
+     *
+     * This means there is a `source` parameter in the URL, and an active PaymentIntent.
+     * When this happens, we'll monitor the status of the PaymentIntent and present real-time
+     * information to the user.
+     */
+
+    const pollPaymentIntentStatus = async (
+        paymentIntent,
+        timeout = 30000,
+        interval = 500,
+        start = null
+    ) => {
+        start = start ? start : Date.now();
+        const endStates = ["succeeded", "processing", "canceled"];
+        // Retrieve the PaymentIntent status from our server.
+        const rawResponse = await fetch(
+            absoluteLink(`confirm_payment/${paymentIntent}/status`)
+        );
+        const response = await rawResponse.json();
+        if (
+            !endStates.includes(response.paymentIntent.status) &&
+            Date.now() < start + timeout
+        ) {
+            // Not done yet. Let's wait and check again.
+            setTimeout(
+                pollPaymentIntentStatus,
+                interval,
+                paymentIntent,
+                timeout,
+                interval,
+                start
+            );
+        } else {
+            handlePayment(response);
+            if (!endStates.includes(response.paymentIntent.status)) {
+                // Status has not changed yet. Let's time out.
+                console.warn(new Error("Polling timed out."));
+            }
+        }
+    };
+
+    const url = new URL(window.location.href);
+    const mainElement = document.getElementById("main");
+    if (
+        url.searchParams.get("source") &&
+        url.searchParams.get("client_secret")
+    ) {
+        // Update the interface to display the processing screen.
+        mainElement.classList.add("checkout", "success", "processing");
+
+        const { source } = await stripe.retrieveSource({
+            id: url.searchParams.get("source"),
+            client_secret: url.searchParams.get("client_secret")
+        });
+
+        // Poll the PaymentIntent status.
+        pollPaymentIntentStatus(source.metadata.paymentIntent);
+    } else {
+        // Update the interface to display the checkout form.
+        mainElement.classList.add("checkout");
+    }
+    document.getElementById("main").classList.remove("loading");
+
+    /**
+     * Display the relevant payment methods for a selected country.
+     */
+
+    // List of relevant countries for the payment methods supported in this demo.
+    // Read the Stripe guide: https://stripe.com/payments/payment-methods-guide
+    const paymentMethods = {
+        ach_credit_transfer: {
+            name: "Bank Transfer",
+            flow: "receiver",
+            countries: ["US"],
+            currencies: ["usd"]
+        },
+        alipay: {
+            name: "Alipay",
+            flow: "redirect",
+            countries: ["CN", "HK", "SG", "JP"],
+            currencies: [
+                "aud",
+                "cad",
+                "eur",
+                "gbp",
+                "hkd",
+                "jpy",
+                "nzd",
+                "sgd",
+                "usd"
+            ]
+        },
+        bancontact: {
+            name: "Bancontact",
+            flow: "redirect",
+            countries: ["BE"],
+            currencies: ["eur"]
+        },
+        card: {
+            name: "Card",
+            flow: "none"
+        },
+        eps: {
+            name: "EPS",
+            flow: "redirect",
+            countries: ["AT"],
+            currencies: ["eur"]
+        },
+        ideal: {
+            name: "iDEAL",
+            flow: "redirect",
+            countries: ["NL"],
+            currencies: ["eur"]
+        },
+        giropay: {
+            name: "Giropay",
+            flow: "redirect",
+            countries: ["DE"],
+            currencies: ["eur"]
+        },
+        multibanco: {
+            name: "Multibanco",
+            flow: "receiver",
+            countries: ["PT"],
+            currencies: ["eur"]
+        },
+        sepa_debit: {
+            name: "SEPA Direct Debit",
+            flow: "none",
+            countries: [
+                "FR",
+                "DE",
+                "ES",
+                "BE",
+                "NL",
+                "LU",
+                "IT",
+                "PT",
+                "AT",
+                "IE",
+                "FI"
+            ],
+            currencies: ["eur"]
+        },
+        sofort: {
+            name: "SOFORT",
+            flow: "redirect",
+            countries: ["DE", "AT"],
+            currencies: ["eur"]
+        },
+        wechat: {
+            name: "WeChat",
+            flow: "none",
+            countries: ["CN", "HK", "SG", "JP"],
+            currencies: [
+                "aud",
+                "cad",
+                "eur",
+                "gbp",
+                "hkd",
+                "jpy",
+                "nzd",
+                "sgd",
+                "usd"
+            ]
+        }
+    };
+
+    // Update the main button to reflect the payment method being selected.
+    const updateButtonLabel = (paymentMethod, bankName) => {
+        let amount = store.formatPrice(
             store.getPaymentTotal(),
             config.currency
-          );
-          submitButton.textContent = `Scan this QR code on WeChat to pay ${amount}`;
-          // Start polling the PaymentIntent status.
-          pollPaymentIntentStatus(paymentIntent.id, 300000);
-        } else {
-          console.log('Unhandled none flow.', source);
-        }
-        break;
-      case 'redirect':
-        // Immediately redirect the customer.
-        submitButton.textContent = 'Redirecting…';
-        window.location.replace(source.redirect.url);
-        break;
-      case 'code_verification':
-        // Display a code verification input to verify the source.
-        break;
-      case 'receiver':
-        // Display the receiver address to send the funds to.
-        mainElement.classList.add('success', 'receiver');
-        const receiverInfo = confirmationElement.querySelector(
-          '.receiver .info'
         );
-        let amount = store.formatPrice(source.amount, config.currency);
-        switch (source.type) {
-          case 'ach_credit_transfer':
-            // Display the ACH Bank Transfer information to the user.
-            const ach = source.ach_credit_transfer;
-            receiverInfo.innerHTML = `
-              <ul>
-                <li>
-                  Amount:
-                  <strong>${amount}</strong>
-                </li>
-                <li>
-                  Bank Name:
-                  <strong>${ach.bank_name}</strong>
-                </li>
-                <li>
-                  Account Number:
-                  <strong>${ach.account_number}</strong>
-                </li>
-                <li>
-                  Routing Number:
-                  <strong>${ach.routing_number}</strong>
-                </li>
-              </ul>`;
-            break;
-          case 'multibanco':
-            // Display the Multibanco payment information to the user.
-            const multibanco = source.multibanco;
-            receiverInfo.innerHTML = `
-              <ul>
-                <li>
-                  Amount (Montante):
-                  <strong>${amount}</strong>
-                </li>
-                <li>
-                  Entity (Entidade):
-                  <strong>${multibanco.entity}</strong>
-                </li>
-                <li>
-                  Reference (Referencia):
-                  <strong>${multibanco.reference}</strong>
-                </li>
-              </ul>`;
-            break;
-          default:
-            console.log('Unhandled receiver flow.', source);
+        let name = paymentMethods[paymentMethod].name;
+        let label = `Sponsor ${amount}`;
+        if (paymentMethod !== "card") {
+            label = `Sponsor ${amount} with ${name}`;
         }
-        // Poll the PaymentIntent status.
-        pollPaymentIntentStatus(paymentIntent.id);
-        break;
-      default:
-        // Customer's PaymentIntent is received, pending payment confirmation.
-        break;
-    }
-  };
+        if (paymentMethod === "wechat") {
+            label = `Generate QR code to sponsor ${amount} with ${name}`;
+        }
+        if (paymentMethod === "sepa_debit" && bankName) {
+            label = `Debit ${amount} from ${bankName}`;
+        }
+        submitButton.innerText = label;
 
-  /**
-   * Monitor the status of a source after a redirect flow.
-   *
-   * This means there is a `source` parameter in the URL, and an active PaymentIntent.
-   * When this happens, we'll monitor the status of the PaymentIntent and present real-time
-   * information to the user.
-   */
+        // Update above button text
+        amountSpan.innerText = amount;
+    };
 
-  const pollPaymentIntentStatus = async (
-    paymentIntent,
-    timeout = 30000,
-    interval = 500,
-    start = null
-  ) => {
-    start = start ? start : Date.now();
-    const endStates = ['succeeded', 'processing', 'canceled'];
-    // Retrieve the PaymentIntent status from our server.
-    const rawResponse = await fetch(`payment_intents/${paymentIntent}/status`);
-    const response = await rawResponse.json();
-    if (
-      !endStates.includes(response.paymentIntent.status) &&
-      Date.now() < start + timeout
-    ) {
-      // Not done yet. Let's wait and check again.
-      setTimeout(
-        pollPaymentIntentStatus,
-        interval,
-        paymentIntent,
-        timeout,
-        interval,
-        start
-      );
-    } else {
-      handlePayment(response);
-      if (!endStates.includes(response.paymentIntent.status)) {
-        // Status has not changed yet. Let's time out.
-        console.warn(new Error('Polling timed out.'));
-      }
-    }
-  };
+    // Move updateButtonLabel to global to fire it on donation amount change
+    window.updateButtonLabel = updateButtonLabel;
 
-  const url = new URL(window.location.href);
-  const mainElement = document.getElementById('main');
-  if (url.searchParams.get('source') && url.searchParams.get('client_secret')) {
-    // Update the interface to display the processing screen.
-    mainElement.classList.add('checkout', 'success', 'processing');
+    const selectCountry = country => {
+        const selector = document.getElementById("country");
+        selector.querySelector(`option[value=${country}]`).selected =
+            "selected";
+        selector.className = `field ${country}`;
 
-    const {source} = await stripe.retrieveSource({
-      id: url.searchParams.get('source'),
-      client_secret: url.searchParams.get('client_secret'),
-    });
+        // Trigger the methods to show relevant fields and payment methods on page load.
+        showRelevantFormFields();
+        showRelevantPaymentMethods();
+    };
 
-    // Poll the PaymentIntent status.
-    pollPaymentIntentStatus(source.metadata.paymentIntent);
-  } else {
-    // Update the interface to display the checkout form.
-    mainElement.classList.add('checkout');
+    // Show only form fields that are relevant to the selected country.
+    const showRelevantFormFields = country => {
+        if (!country) {
+            country = form.querySelector("select[name=country] option:checked")
+                .value;
+        }
+        const zipLabel = form.querySelector("label.zip");
+        // Only show the state input for the United States.
+        zipLabel.parentElement.classList.toggle("with-state", country === "US");
+        // Update the ZIP label to make it more relevant for each country.
+        form.querySelector("label.zip span").innerText =
+            country === "US"
+                ? "ZIP"
+                : country === "GB"
+                    ? "Postcode"
+                    : "Postal Code";
+    };
 
-    // Create the PaymentIntent with the cart details.
-    const response = await store.createPaymentIntent(
-      config.currency,
-      store.getLineItems()
-    );
-    paymentIntent = response.paymentIntent;
-  }
-  document.getElementById('main').classList.remove('loading');
+    // Show only the payment methods that are relevant to the selected country.
+    const showRelevantPaymentMethods = country => {
+        if (!country) {
+            country = form.querySelector("select[name=country] option:checked")
+                .value;
+        }
+        const paymentInputs = form.querySelectorAll("input[name=payment]");
+        for (let i = 0; i < paymentInputs.length; i++) {
+            let input = paymentInputs[i];
+            input.parentElement.classList.toggle(
+                "visible",
+                input.value === "card" ||
+                    (config.paymentMethods.includes(input.value) &&
+                        paymentMethods[input.value].countries.includes(
+                            country
+                        ) &&
+                        paymentMethods[input.value].currencies.includes(
+                            config.currency
+                        ))
+            );
+        }
 
-  /**
-   * Display the relevant payment methods for a selected country.
-   */
+        // Hide the tabs if card is the only available option.
+        const paymentMethodsTabs = document.getElementById("payment-methods");
+        paymentMethodsTabs.classList.toggle(
+            "visible",
+            paymentMethodsTabs.querySelectorAll("li.visible").length > 1
+        );
 
-  // List of relevant countries for the payment methods supported in this demo.
-  // Read the Stripe guide: https://stripe.com/payments/payment-methods-guide
-  const paymentMethods = {
-    ach_credit_transfer: {
-      name: 'Bank Transfer',
-      flow: 'receiver',
-      countries: ['US'],
-      currencies: ['usd'],
-    },
-    alipay: {
-      name: 'Alipay',
-      flow: 'redirect',
-      countries: ['CN', 'HK', 'SG', 'JP'],
-      currencies: [
-        'aud',
-        'cad',
-        'eur',
-        'gbp',
-        'hkd',
-        'jpy',
-        'nzd',
-        'sgd',
-        'usd',
-      ],
-    },
-    bancontact: {
-      name: 'Bancontact',
-      flow: 'redirect',
-      countries: ['BE'],
-      currencies: ['eur'],
-    },
-    card: {
-      name: 'Card',
-      flow: 'none',
-    },
-    eps: {
-      name: 'EPS',
-      flow: 'redirect',
-      countries: ['AT'],
-      currencies: ['eur'],
-    },
-    ideal: {
-      name: 'iDEAL',
-      flow: 'redirect',
-      countries: ['NL'],
-      currencies: ['eur'],
-    },
-    giropay: {
-      name: 'Giropay',
-      flow: 'redirect',
-      countries: ['DE'],
-      currencies: ['eur'],
-    },
-    multibanco: {
-      name: 'Multibanco',
-      flow: 'receiver',
-      countries: ['PT'],
-      currencies: ['eur'],
-    },
-    sepa_debit: {
-      name: 'SEPA Direct Debit',
-      flow: 'none',
-      countries: [
-        'FR',
-        'DE',
-        'ES',
-        'BE',
-        'NL',
-        'LU',
-        'IT',
-        'PT',
-        'AT',
-        'IE',
-        'FI',
-      ],
-      currencies: ['eur'],
-    },
-    sofort: {
-      name: 'SOFORT',
-      flow: 'redirect',
-      countries: ['DE', 'AT'],
-      currencies: ['eur'],
-    },
-    wechat: {
-      name: 'WeChat',
-      flow: 'none',
-      countries: ['CN', 'HK', 'SG', 'JP'],
-      currencies: [
-        'aud',
-        'cad',
-        'eur',
-        'gbp',
-        'hkd',
-        'jpy',
-        'nzd',
-        'sgd',
-        'usd',
-      ],
-    },
-  };
+        // Check the first payment option again.
+        paymentInputs[0].checked = "checked";
+        form.querySelector(".payment-info.card").classList.add("visible");
+        form.querySelector(".payment-info.ideal").classList.remove("visible");
+        form.querySelector(".payment-info.sepa_debit").classList.remove(
+            "visible"
+        );
+        form.querySelector(".payment-info.wechat").classList.remove("visible");
+        form.querySelector(".payment-info.redirect").classList.remove(
+            "visible"
+        );
+        updateButtonLabel(paymentInputs[0].value);
+    };
 
-  // Update the main button to reflect the payment method being selected.
-  const updateButtonLabel = (paymentMethod, bankName) => {
-    let amount = store.formatPrice(store.getPaymentTotal(), config.currency);
-    let name = paymentMethods[paymentMethod].name;
-    let label = `Pay ${amount}`;
-    if (paymentMethod !== 'card') {
-      label = `Pay ${amount} with ${name}`;
-    }
-    if (paymentMethod === 'wechat') {
-      label = `Generate QR code to pay ${amount} with ${name}`;
-    }
-    if (paymentMethod === 'sepa_debit' && bankName) {
-      label = `Debit ${amount} from ${bankName}`;
-    }
-    submitButton.innerText = label;
-  };
+    // Listen to changes to the payment method selector.
+    for (let input of document.querySelectorAll("input[name=payment]")) {
+        input.addEventListener("change", event => {
+            event.preventDefault();
+            const payment = form.querySelector("input[name=payment]:checked")
+                .value;
+            const flow = paymentMethods[payment].flow;
 
-  const selectCountry = country => {
-    const selector = document.getElementById('country');
-    selector.querySelector(`option[value=${country}]`).selected = 'selected';
-    selector.className = `field ${country}`;
+            // Update button label.
+            updateButtonLabel(event.target.value);
 
-    // Trigger the methods to show relevant fields and payment methods on page load.
-    showRelevantFormFields();
-    showRelevantPaymentMethods();
-  };
-
-  // Show only form fields that are relevant to the selected country.
-  const showRelevantFormFields = country => {
-    if (!country) {
-      country = form.querySelector('select[name=country] option:checked').value;
-    }
-    const zipLabel = form.querySelector('label.zip');
-    // Only show the state input for the United States.
-    zipLabel.parentElement.classList.toggle('with-state', country === 'US');
-    // Update the ZIP label to make it more relevant for each country.
-    form.querySelector('label.zip span').innerText =
-      country === 'US' ? 'ZIP' : country === 'GB' ? 'Postcode' : 'Postal Code';
-  };
-
-  // Show only the payment methods that are relevant to the selected country.
-  const showRelevantPaymentMethods = country => {
-    if (!country) {
-      country = form.querySelector('select[name=country] option:checked').value;
-    }
-    const paymentInputs = form.querySelectorAll('input[name=payment]');
-    for (let i = 0; i < paymentInputs.length; i++) {
-      let input = paymentInputs[i];
-      input.parentElement.classList.toggle(
-        'visible',
-        input.value === 'card' ||
-          (config.paymentMethods.includes(input.value) &&
-            paymentMethods[input.value].countries.includes(country) &&
-            paymentMethods[input.value].currencies.includes(config.currency))
-      );
+            // Show the relevant details, whether it's an extra element or extra information for the user.
+            form.querySelector(".payment-info.card").classList.toggle(
+                "visible",
+                payment === "card"
+            );
+            form.querySelector(".payment-info.ideal").classList.toggle(
+                "visible",
+                payment === "ideal"
+            );
+            form.querySelector(".payment-info.sepa_debit").classList.toggle(
+                "visible",
+                payment === "sepa_debit"
+            );
+            form.querySelector(".payment-info.wechat").classList.toggle(
+                "visible",
+                payment === "wechat"
+            );
+            form.querySelector(".payment-info.redirect").classList.toggle(
+                "visible",
+                flow === "redirect"
+            );
+            form.querySelector(".payment-info.receiver").classList.toggle(
+                "visible",
+                flow === "receiver"
+            );
+            document
+                .getElementById("card-errors")
+                .classList.remove("visible", payment !== "card");
+        });
     }
 
-    // Hide the tabs if card is the only available option.
-    const paymentMethodsTabs = document.getElementById('payment-methods');
-    paymentMethodsTabs.classList.toggle(
-      'visible',
-      paymentMethodsTabs.querySelectorAll('li.visible').length > 1
-    );
-
-    // Check the first payment option again.
-    paymentInputs[0].checked = 'checked';
-    form.querySelector('.payment-info.card').classList.add('visible');
-    form.querySelector('.payment-info.ideal').classList.remove('visible');
-    form.querySelector('.payment-info.sepa_debit').classList.remove('visible');
-    form.querySelector('.payment-info.wechat').classList.remove('visible');
-    form.querySelector('.payment-info.redirect').classList.remove('visible');
-    updateButtonLabel(paymentInputs[0].value);
-  };
-
-  // Listen to changes to the payment method selector.
-  for (let input of document.querySelectorAll('input[name=payment]')) {
-    input.addEventListener('change', event => {
-      event.preventDefault();
-      const payment = form.querySelector('input[name=payment]:checked').value;
-      const flow = paymentMethods[payment].flow;
-
-      // Update button label.
-      updateButtonLabel(event.target.value);
-
-      // Show the relevant details, whether it's an extra element or extra information for the user.
-      form
-        .querySelector('.payment-info.card')
-        .classList.toggle('visible', payment === 'card');
-      form
-        .querySelector('.payment-info.ideal')
-        .classList.toggle('visible', payment === 'ideal');
-      form
-        .querySelector('.payment-info.sepa_debit')
-        .classList.toggle('visible', payment === 'sepa_debit');
-      form
-        .querySelector('.payment-info.wechat')
-        .classList.toggle('visible', payment === 'wechat');
-      form
-        .querySelector('.payment-info.redirect')
-        .classList.toggle('visible', flow === 'redirect');
-      form
-        .querySelector('.payment-info.receiver')
-        .classList.toggle('visible', flow === 'receiver');
-      document
-        .getElementById('card-errors')
-        .classList.remove('visible', payment !== 'card');
-    });
-  }
-
-  // Select the default country from the config on page load.
-  let country = config.country;
-  // Override it if a valid country is passed as a URL parameter.
-  var urlParams = new URLSearchParams(window.location.search);
-  let countryParam = urlParams.get('country')
-    ? urlParams.get('country').toUpperCase()
-    : config.country;
-  if (form.querySelector(`option[value="${countryParam}"]`)) {
-    country = countryParam;
-  }
-  selectCountry(country);
+    // Select the default country from the config on page load.
+    let country = config.country;
+    // Override it if a valid country is passed as a URL parameter.
+    const urlParams = new URLSearchParams(window.location.search);
+    let countryParam = urlParams.get("country")
+        ? urlParams.get("country").toUpperCase()
+        : config.country;
+    if (form.querySelector(`option[value="${countryParam}"]`)) {
+        country = countryParam;
+    }
+    selectCountry(country);
 })();

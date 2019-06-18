@@ -6,6 +6,7 @@ import sys
 import os
 import locale
 import stripe
+from flask import Flask, render_template, jsonify, request
 
 from fosspay.config import _cfg, _cfgi
 from fosspay.database import db, init_db
@@ -89,3 +90,26 @@ def inject():
         'str': str,
         'int': int
     }
+
+# STRIPE CODE
+@app.route('/support/confirm_payment', methods=['POST'])
+def make_payment_intent():
+    # Creates a new PaymentIntent with items from the cart.
+    data = json.loads(request.data)
+    try:
+        amount = data['amount']
+        payment_intent = stripe.PaymentIntent.create(
+            payment_method=data['payment_method_id'],
+            amount=amount,
+            currency='usd',
+            confirmation_method='manual',
+            confirm=True,
+        )
+        return jsonify({'paymentIntent': payment_intent})
+    except Exception as e:
+        return jsonify(e), 403
+
+@app.route('/support/confirm_payment/<string:id>/status', methods=['GET'])
+def retrieve_payment_intent_status(id):
+    payment_intent = stripe.PaymentIntent.retrieve(id)
+    return jsonify({'paymentIntent': {'status': payment_intent["status"]}})
