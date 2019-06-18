@@ -14,7 +14,8 @@
         var amount = e.target.dataset.amount;
         if (amount === "custom") {
             custom.classList.remove("hidden");
-            donation.amount = +document.querySelector("#custom-amount-text").value * 100;
+            donation.amount =
+                +document.querySelector("#custom-amount-text").value * 100;
         } else {
             custom.classList.add("hidden");
             donation.amount = +e.target.dataset.amount * 100;
@@ -23,7 +24,9 @@
 
     function selectFrequency(e) {
         e.preventDefault();
-        document.querySelector(".frequencies .active").classList.remove("active");
+        document
+            .querySelector(".frequencies .active")
+            .classList.remove("active");
         e.target.classList.add("active");
         donation.type = e.target.dataset.frequency;
     }
@@ -38,19 +41,21 @@
         frequencies[i].addEventListener("click", selectFrequency);
     }
 
-    document.getElementById("custom-amount-text").addEventListener("change", function(e) {
-        var value = +e.target.value;
-        if (isNaN(value)) {
-            value = 1;
-        }
-        if (value <= 0) {
-            value = 1;
-        }
-        e.target.value = value;
-        donation.amount = value * 100;
-    });
+    document
+        .getElementById("custom-amount-text")
+        .addEventListener("change", function(e) {
+            var value = +e.target.value;
+            if (isNaN(value)) {
+                value = 1;
+            }
+            if (value <= 0) {
+                value = 1;
+            }
+            e.target.value = value;
+            donation.amount = value * 100;
+        });
 
-    var project = document.getElementById("project")
+    var project = document.getElementById("project");
     if (project) {
         project.addEventListener("change", function(e) {
             if (e.target.value === "null") {
@@ -61,62 +66,74 @@
         });
     }
 
-    document.getElementById("donate-button").addEventListener("click", function(e) {
-        e.preventDefault();
-        if (e.target.getAttribute("disabled")) {
-            return;
-        }
-
-        donation.comment = document.getElementById("comments").value;
-
-        var handler = StripeCheckout.configure({
-            name: your_name,
-            email: window.email,
-            key: window.stripe_key,
-            image: window.avatar,
-            locale: 'auto',
-            description: donation.type == "monthly" ? i18n["Monthly Sponsorship"] : i18n["One-time Sponsorship"],
-            panelLabel: "{{amount}}",
-            amount: donation.amount,
-            currency: currency,
-            token: function(token) {
-                e.target.setAttribute("disabled", "");
-                e.target.textContent = i18n["Submitting..."];
-
-                var data = new FormData();
-                data.append("stripe_token", token.id);
-                data.append("email", token.email);
-                data.append("amount", donation.amount);
-                data.append("type", donation.type);
-                if (donation.comment !== null) {
-                    data.append("comment", donation.comment);
-                }
-                if (donation.project !== null) {
-                    data.append("project", donation.project);
-                }
-                var xhr = new XMLHttpRequest();
-                xhr.open("POST", "donate");
-                xhr.onload = function() {
-                    var res = JSON.parse(this.responseText);
-                    if (res.success) {
-                        document.getElementById("donation-stuff").classList.add("hidden");
-                        document.getElementById("thanks").classList.remove("hidden");
-                        if (res.new_account) {
-                            document.getElementById("new-donor-password").classList.remove("hidden");
-                            document.getElementById("reset-token").value = res.password_reset;
-                        }
-                    } else {
-                        var errors = document.getElementById("errors");
-                        errors.classList.remove("hidden");
-                        errors.querySelector("p").textContent = res.reason;
-                        e.target.removeAttribute("disabled");
-                        e.target.textContent = i18n["Donate"];
-                    }
-                };
-                xhr.send(data);
+    document
+        .getElementById("donate-button")
+        .addEventListener("click", function(e) {
+            e.preventDefault();
+            if (e.target.getAttribute("disabled")) {
+                return;
             }
-        });
 
-        handler.open();
-    });
+            donation.comment = document.getElementById("comments").value;
+
+            var handler = StripeCheckout.configure({
+                name: your_name,
+                email: window.email,
+                key: window.stripe_key,
+                image: window.avatar,
+                locale: "auto",
+                description:
+                    donation.type == "monthly"
+                        ? i18n["Monthly Sponsorship"]
+                        : i18n["One-time Sponsorship"],
+                panelLabel: "{{amount}}",
+                amount: donation.amount,
+                currency: currency,
+                token: function(token) {
+                    e.target.setAttribute("disabled", "");
+                    e.target.textContent = i18n["Submitting..."];
+
+                    var data = new FormData();
+                    data.append("stripe_token", token.id);
+                    data.append("email", token.email);
+                    data.append("amount", donation.amount);
+                    data.append("type", donation.type);
+                    if (donation.comment !== null) {
+                        data.append("comment", donation.comment);
+                    }
+                    if (donation.project !== null) {
+                        data.append("project", donation.project);
+                    }
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "donate");
+                    xhr.onload = function() {
+                        var res = JSON.parse(this.responseText);
+                        if (res.success) {
+                            document
+                                .getElementById("donation-stuff")
+                                .classList.add("hidden");
+                            document
+                                .getElementById("thanks")
+                                .classList.remove("hidden");
+                            if (res.new_account) {
+                                document
+                                    .getElementById("new-donor-password")
+                                    .classList.remove("hidden");
+                                document.getElementById("reset-token").value =
+                                    res.password_reset;
+                            }
+                        } else {
+                            var errors = document.getElementById("errors");
+                            errors.classList.remove("hidden");
+                            errors.querySelector("p").textContent = res.reason;
+                            e.target.removeAttribute("disabled");
+                            e.target.textContent = i18n["Donate"];
+                        }
+                    };
+                    xhr.send(data);
+                }
+            });
+
+            handler.open();
+        });
 })();
