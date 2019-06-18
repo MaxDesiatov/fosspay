@@ -1,5 +1,5 @@
 (function() {
-    var donation = {
+    const donation = {
         type: window.default_type,
         amount: window.default_amount * 100, // cents
         project: null,
@@ -10,8 +10,8 @@
         e.preventDefault();
         document.querySelector(".amounts .active").classList.remove("active");
         e.target.classList.add("active");
-        var custom = document.querySelector("#custom-amount");
-        var amount = e.target.dataset.amount;
+        const custom = document.querySelector("#custom-amount");
+        const amount = e.target.dataset.amount;
         if (amount === "custom") {
             custom.classList.remove("hidden");
             donation.amount =
@@ -31,20 +31,20 @@
         donation.type = e.target.dataset.frequency;
     }
 
-    var amounts = document.querySelectorAll(".amounts button");
-    for (var i = 0; i < amounts.length; i++) {
+    const amounts = document.querySelectorAll(".amounts button");
+    for (let i = 0; i < amounts.length; i++) {
         amounts[i].addEventListener("click", selectAmount);
     }
 
-    var frequencies = document.querySelectorAll(".frequencies button");
-    for (var i = 0; i < frequencies.length; i++) {
+    const frequencies = document.querySelectorAll(".frequencies button");
+    for (let i = 0; i < frequencies.length; i++) {
         frequencies[i].addEventListener("click", selectFrequency);
     }
 
     document
         .getElementById("custom-amount-text")
         .addEventListener("change", function(e) {
-            var value = +e.target.value;
+            const value = +e.target.value;
             if (isNaN(value)) {
                 value = 1;
             }
@@ -55,7 +55,7 @@
             donation.amount = value * 100;
         });
 
-    var project = document.getElementById("project");
+    const project = document.getElementById("project");
     if (project) {
         project.addEventListener("change", function(e) {
             if (e.target.value === "null") {
@@ -76,7 +76,7 @@
 
             donation.comment = document.getElementById("comments").value;
 
-            var handler = StripeCheckout.configure({
+            const handler = StripeCheckout.configure({
                 name: your_name,
                 email: window.email,
                 key: window.stripe_key,
@@ -93,7 +93,7 @@
                     e.target.setAttribute("disabled", "");
                     e.target.textContent = i18n["Submitting..."];
 
-                    var data = new FormData();
+                    const data = new FormData();
                     data.append("stripe_token", token.id);
                     data.append("email", token.email);
                     data.append("amount", donation.amount);
@@ -104,10 +104,10 @@
                     if (donation.project !== null) {
                         data.append("project", donation.project);
                     }
-                    var xhr = new XMLHttpRequest();
+                    const xhr = new XMLHttpRequest();
                     xhr.open("POST", "donate");
                     xhr.onload = function() {
-                        var res = JSON.parse(this.responseText);
+                        const res = JSON.parse(this.responseText);
                         if (res.success) {
                             document
                                 .getElementById("donation-stuff")
@@ -123,7 +123,7 @@
                                     res.password_reset;
                             }
                         } else {
-                            var errors = document.getElementById("errors");
+                            const errors = document.getElementById("errors");
                             errors.classList.remove("hidden");
                             errors.querySelector("p").textContent = res.reason;
                             e.target.removeAttribute("disabled");

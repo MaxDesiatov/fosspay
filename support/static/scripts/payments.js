@@ -613,7 +613,7 @@
     // Select the default country from the config on page load.
     let country = config.country;
     // Override it if a valid country is passed as a URL parameter.
-    var urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(window.location.search);
     let countryParam = urlParams.get("country")
         ? urlParams.get("country").toUpperCase()
         : config.country;

@@ -13,8 +13,8 @@
         e.preventDefault();
         document.querySelector(".amounts .active").classList.remove("active");
         e.target.classList.add("active");
-        var custom = document.querySelector("#custom-amount");
-        var amount = e.target.dataset.amount;
+        const custom = document.querySelector("#custom-amount");
+        const amount = e.target.dataset.amount;
         if (amount === "custom") {
             custom.classList.remove("hidden");
             donation.amount =
@@ -41,27 +41,27 @@
     }
 
     function updateFrequencySpan(type = "") {
-        let text =
+        const text =
             type == "monthly"
                 ? i18n["Monthly Sponsorship"]
                 : i18n["One-time Sponsorship"];
         donationFrequencySpan.innerText = text.toLowerCase();
     }
 
-    var amounts = document.querySelectorAll(".amounts button");
-    for (var i = 0; i < amounts.length; i++) {
+    const amounts = document.querySelectorAll(".amounts button");
+    for (let i = 0; i < amounts.length; i++) {
         amounts[i].addEventListener("click", selectAmount);
     }
 
-    var frequencies = document.querySelectorAll(".frequencies button");
-    for (var i = 0; i < frequencies.length; i++) {
+    const frequencies = document.querySelectorAll(".frequencies button");
+    for (let i = 0; i < frequencies.length; i++) {
         frequencies[i].addEventListener("click", selectFrequency);
     }
 
     document
         .getElementById("custom-amount-text")
         .addEventListener("change", function(e) {
-            var value = +e.target.value;
+            const value = +e.target.value;
             if (isNaN(value)) {
                 value = 1;
             }
@@ -75,7 +75,7 @@
             updateButtonLabel("card");
         });
 
-    var project = document.getElementById("project");
+    const project = document.getElementById("project");
     if (project) {
         project.addEventListener("change", function(e) {
             if (e.target.value === "null") {
