@@ -6,15 +6,21 @@ import sys
 import os
 import locale
 import stripe
+import binascii
 from flask import Flask, render_template, jsonify, request
 
 from fosspay.config import _cfg, _cfgi
 from fosspay.database import db, init_db
-from fosspay.objects import User
+from fosspay.objects import User, Donation
 from fosspay.common import *
 from fosspay.network import *
-
+from fosspay.objects import User, DonationType
 from fosspay.blueprints.html import html
+from datetime import datetime, timedelta
+from fosspay.email import send_thank_you, send_new_donation
+
+
+
 
 app = Flask(
     __name__, 
@@ -96,20 +102,192 @@ def inject():
 def make_payment_intent():
     # Creates a new PaymentIntent with items from the cart.
     data = json.loads(request.data)
+    email = data["email"]
+    stripe_token = data["stripe_token"]
+    amount = data["amount"]
+    type = data["type"]
+    comment = data["comment"]
+    project_id = data["project"]
+    intent = None
+
     try:
-        amount = data['amount']
-        payment_intent = stripe.PaymentIntent.create(
-            payment_method=data['payment_method_id'],
-            amount=amount,
-            currency='usd',
-            confirmation_method='manual',
-            confirm=True,
-        )
-        return jsonify({'paymentIntent': payment_intent})
-    except Exception as e:
-        return jsonify(e), 403
+        if 'payment_method_id' in data:
+            # validate and rejigger the form inputs
+            if not email or not stripe_token or not amount or not type:
+                return {"success": False, "reason": "Invalid request"}, 400
+            try:
+                if project_id is None or project_id == "null":
+                    project = None
+                else:
+                    project_id = int(project_id)
+                    project = Project.query.filter(Project.id == project_id).first()
+
+                if type == "once":
+                    type = DonationType.one_time
+                else:
+                    type = DonationType.monthly
+
+                amount = int(amount)
+            except Exception as e:
+                print(e)
+                return {"success": False, "reason": "Invalid request"}, 400
+
+            new_account = False
+            user = User.query.filter(User.email == email).first()
+            if not user:
+                new_account = True
+                user = User(email, binascii.b2a_hex(os.urandom(20)).decode("utf-8"))
+                user.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
+                user.password_reset_expires = datetime.now() + timedelta(days=1)
+                customer = stripe.Customer.create(email=user.email)
+
+                # Attach payment method to the customer:
+                stripe.PaymentMethod.attach(
+                    data['payment_method_id'], customer=customer.id)
+                
+                user.stripe_customer = customer.id
+                db.add(user)
+            else:
+                customer = stripe.Customer.retrieve(user.stripe_customer)
+                new_source = customer.sources.create(source=stripe_token)
+                customer.default_source = new_source.id
+                customer.save()
+
+            donation = Donation(user, type, amount, project, comment)
+            db.add(donation)
+
+            # try:
+            #     charge = stripe.Charge.create(
+            #         amount=amount,
+            #         currency=_cfg("currency"),
+            #         customer=user.stripe_customer,
+            #         description="Donation to " + _cfg("your-name")
+            #     )
+            # except stripe.error.CardError as e:
+            #     db.rollback()
+            #     db.close()
+            #     return {"success": False, "reason": "Your card was declined."}
+
+            db.commit()
+
+            send_thank_you(user, amount, type == DonationType.monthly)
+            send_new_donation(user, donation)
+
+            # Handle this if you are a man       
+            # if new_account:
+            #     return {"success": True, "new_account": new_account, "password_reset": user.password_reset}
+            # else:
+            #     return {"success": True, "new_account": new_account}
+
+
+            # Create the PaymentIntent
+            amount = data['amount']
+            intent = stripe.PaymentIntent.create(
+                payment_method=data['payment_method_id'],
+                amount=amount,
+                currency='usd',
+                confirmation_method='manual',
+                confirm=True,
+                save_payment_method=True,
+                customer=user.stripe_customer,
+            )
+        elif 'payment_intent_id' in data:
+            intent = stripe.PaymentIntent.confirm(data['payment_intent_id'])
+        
+    except stripe.error.CardError as e:
+        # Display error on client
+        return json.dumps({'error': e.user_message}), 403
+    
+    return generate_payment_response(intent)
+
+def generate_payment_response(intent):
+    if intent.status == 'requires_action' and intent.next_action.type == 'use_stripe_sdk':
+        # Tell the client to handle the action
+        return json.dumps({
+            'requires_action': True,
+            'payment_intent_client_secret': intent.client_secret
+        }), 200
+    elif intent.status == 'succeeded':
+        # The payment didn't need any additional actions and completed
+        # Handle the post-payment fulfillment
+        return json.dumps({'success': True, 'intent': intent}), 200
+    else:
+        # Invalid status
+        return json.dumps({'error': 'Invalid PaymentIntent status'}), 200
 
 @app.route('/support/confirm_payment/<string:id>/status', methods=['GET'])
 def retrieve_payment_intent_status(id):
     payment_intent = stripe.PaymentIntent.retrieve(id)
     return jsonify({'paymentIntent': {'status': payment_intent["status"]}})
+
+
+@app.route("/support/donate", methods=["POST"])
+def donate():
+    data = json.loads(request.data)
+    email = data["email"]
+    stripe_token = data["stripe_token"]
+    amount = data["amount"]
+    type = data["type"]
+    comment = data["comment"]
+    project_id = data["project"]
+
+    # validate and rejigger the form inputs
+    if not email or not stripe_token or not amount or not type:
+        return {"success": False, "reason": "Invalid request"}, 400
+    try:
+        if project_id is None or project_id == "null":
+            project = None
+        else:
+            project_id = int(project_id)
+            project = Project.query.filter(Project.id == project_id).first()
+
+        if type == "once":
+            type = DonationType.one_time
+        else:
+            type = DonationType.monthly
+
+        amount = int(amount)
+    except Exception as e:
+        print(e)
+        return {"success": False, "reason": "Invalid request"}, 400
+
+    new_account = False
+    user = User.query.filter(User.email == email).first()
+    if not user:
+        new_account = True
+        user = User(email, binascii.b2a_hex(os.urandom(20)).decode("utf-8"))
+        user.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
+        user.password_reset_expires = datetime.now() + timedelta(days=1)
+        customer = stripe.Customer.create(email=user.email, card=stripe_token)
+        user.stripe_customer = customer.id
+        db.add(user)
+    else:
+        customer = stripe.Customer.retrieve(user.stripe_customer)
+        new_source = customer.sources.create(source=stripe_token)
+        customer.default_source = new_source.id
+        customer.save()
+
+    donation = Donation(user, type, amount, project, comment)
+    db.add(donation)
+
+    try:
+        charge = stripe.Charge.create(
+            amount=amount,
+            currency=_cfg("currency"),
+            customer=user.stripe_customer,
+            description="Donation to " + _cfg("your-name")
+        )
+    except stripe.error.CardError as e:
+        db.rollback()
+        db.close()
+        return {"success": False, "reason": "Your card was declined."}
+
+    db.commit()
+
+    send_thank_you(user, amount, type == DonationType.monthly)
+    send_new_donation(user, donation)
+
+    if new_account:
+        return {"success": True, "new_account": new_account, "password_reset": user.password_reset}
+    else:
+        return {"success": True, "new_account": new_account}

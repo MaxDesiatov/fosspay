@@ -81,7 +81,7 @@
         requestPayerEmail: true
     });
 
-    function handleServerResponse(response) {
+    async function handleServerResponse(response) {
         if (response.error) {
             // Handle error
         } else if (response.requires_action) {
@@ -89,6 +89,12 @@
             handleAction(response);
         } else {
             // Handle success
+
+            // We need to finish action of creating new payment by creating
+            // new account on server on `/donate` route
+
+            // I should call /donate with form data here when donation is checked by stripe to create account on server
+            // and find out what is goal of invoice.js
         }
     }
 
@@ -163,8 +169,9 @@
         event.preventDefault();
 
         // Retrieve the user information from the form.
-        // TODO information from form definitely should be used somewhere
         const name = form.querySelector("input[name=name]").value;
+        const email = form.querySelector("input[name=email]").value;
+        window.donation.email = email;
 
         // Disable the Pay button to prevent multiple click events.
         submitButton.disabled = true;
@@ -173,23 +180,15 @@
             "card",
             card,
             {
-                billing_details: { name: name }
+                billing_details: { ...{name, email} }
             }
         );
         if (error) {
             // Show error in payment form
         } else {
-            // Send paymentMethod.id to your server (see Step 2)
+            // Send paymentMethod.id to your server
             const response = await store.createPaymentIntent({
-                payment_method_id: paymentMethod.id,
-                currency: config.currency,
-                items: [
-                    {
-                        type: "sku",
-                        parent: "pSku",
-                        quantity: 1
-                    }
-                ]
+                payment_method_id: paymentMethod.id
             });
             handleServerResponse(response);
         }

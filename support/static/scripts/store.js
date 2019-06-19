@@ -38,25 +38,33 @@ class Store {
     }
 
     // Create the PaymentIntent with the cart details.
-    async createPaymentIntent({ currency, items, payment_method_id }) {
+    async createPaymentIntent({ payment_method_id }) {
         try {
-            const response = await fetch(absoluteLink("confirm_payment"), {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    amount: this.getPaymentTotal(),
-                    currency,
-                    items,
-                    payment_method_id
-                })
-            });
-            const data = await response.json();
-            if (data.error) {
-                return { error: data.error };
-            } else {
-                return data;
-            }
-        } catch (err) {
+                const email = window.donation.email;
+                const stripe_token = payment_method_id;
+
+                const response = await fetch(
+                    absoluteLink("confirm_payment"),
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            payment_method_id,
+                            stripe_token,
+                            email,
+                            ...window.donation
+                        })
+                    }
+                );
+                const data = await response.json();
+                if (data.error) {
+                    return { error: data.error };
+                } else {
+                    return data;
+                }
+            } catch (err) {
             return { error: err.message };
         }
     }
