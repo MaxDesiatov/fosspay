@@ -22,9 +22,6 @@
     const submitButton = form.querySelector("button[type=submit]");
     const amountSpan = document.getElementById("payment-amount");
 
-    // Global variable to store the PaymentIntent object.
-    let paymentIntent;
-
     /**
      * Setup Stripe Elements.
      */
@@ -34,25 +31,6 @@
 
     // Create an instance of Elements.
     const elements = stripe.elements();
-
-    // Prepare the styles for Elements.
-    const style = {
-        base: {
-            iconColor: "#666ee8",
-            color: "#31325f",
-            fontWeight: 400,
-            fontFamily:
-                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
-            fontSmoothing: "antialiased",
-            fontSize: "15px",
-            "::placeholder": {
-                color: "#aab7c4"
-            },
-            ":-webkit-autofill": {
-                color: "#666ee8"
-            }
-        }
-    };
 
     /**
      * Implement a Stripe Card Element that matches the look-and-feel of the app.
@@ -79,53 +57,8 @@
         submitButton.disabled = false;
     });
 
-    /**
-     * Implement a Stripe IBAN Element that matches the look-and-feel of the app.
-     *
-     * This makes it easy to collect bank account information.
-     */
-
-    // Create a IBAN Element and pass the right options for styles and supported countries.
-    const ibanOptions = {
-        style,
-        supportedCountries: ["SEPA"]
-    };
-    const iban = elements.create("iban", ibanOptions);
-
-    // Mount the IBAN Element on the page.
-    iban.mount("#iban-element");
-
-    // Monitor change events on the IBAN Element to display any errors.
-    iban.on("change", ({ error, bankName }) => {
-        const ibanErrors = document.getElementById("iban-errors");
-        if (error) {
-            ibanErrors.textContent = error.message;
-            ibanErrors.classList.add("visible");
-        } else {
-            ibanErrors.classList.remove("visible");
-            if (bankName) {
-                updateButtonLabel("sepa_debit", bankName);
-            }
-        }
-        // Re-enable the Pay button.
-        submitButton.disabled = false;
-    });
-
-    /**
-     * Add an iDEAL Bank selection Element that matches the look-and-feel of the app.
-     *
-     * This allows you to send the customer directly to their iDEAL enabled bank.
-     */
-
-    // Create a iDEAL Bank Element and pass the style options, along with an extra `padding` property.
-    const idealBank = elements.create("idealBank", {
-        style: {
-            base: Object.assign({ padding: "10px 15px" }, style.base)
-        }
-    });
-
-    // Mount the iDEAL Bank Element on the page.
-    idealBank.mount("#ideal-bank-element");
+    initIDEALBank(elements);
+    initIBAN(elements);
 
     /**
      * Implement a Stripe Payment Request Button Element.
@@ -258,7 +191,6 @@
                     }
                 ]
             });
-            paymentIntent = response.paymentIntent;
             handleServerResponse(response);
         }
     });
@@ -369,107 +301,6 @@
      * Display the relevant payment methods for a selected country.
      */
 
-    // List of relevant countries for the payment methods supported in this demo.
-    // Read the Stripe guide: https://stripe.com/payments/payment-methods-guide
-    const paymentMethods = {
-        ach_credit_transfer: {
-            name: "Bank Transfer",
-            flow: "receiver",
-            countries: ["US"],
-            currencies: ["usd"]
-        },
-        alipay: {
-            name: "Alipay",
-            flow: "redirect",
-            countries: ["CN", "HK", "SG", "JP"],
-            currencies: [
-                "aud",
-                "cad",
-                "eur",
-                "gbp",
-                "hkd",
-                "jpy",
-                "nzd",
-                "sgd",
-                "usd"
-            ]
-        },
-        bancontact: {
-            name: "Bancontact",
-            flow: "redirect",
-            countries: ["BE"],
-            currencies: ["eur"]
-        },
-        card: {
-            name: "Card",
-            flow: "none"
-        },
-        eps: {
-            name: "EPS",
-            flow: "redirect",
-            countries: ["AT"],
-            currencies: ["eur"]
-        },
-        ideal: {
-            name: "iDEAL",
-            flow: "redirect",
-            countries: ["NL"],
-            currencies: ["eur"]
-        },
-        giropay: {
-            name: "Giropay",
-            flow: "redirect",
-            countries: ["DE"],
-            currencies: ["eur"]
-        },
-        multibanco: {
-            name: "Multibanco",
-            flow: "receiver",
-            countries: ["PT"],
-            currencies: ["eur"]
-        },
-        sepa_debit: {
-            name: "SEPA Direct Debit",
-            flow: "none",
-            countries: [
-                "FR",
-                "DE",
-                "ES",
-                "BE",
-                "NL",
-                "LU",
-                "IT",
-                "PT",
-                "AT",
-                "IE",
-                "FI"
-            ],
-            currencies: ["eur"]
-        },
-        sofort: {
-            name: "SOFORT",
-            flow: "redirect",
-            countries: ["DE", "AT"],
-            currencies: ["eur"]
-        },
-        wechat: {
-            name: "WeChat",
-            flow: "none",
-            countries: ["CN", "HK", "SG", "JP"],
-            currencies: [
-                "aud",
-                "cad",
-                "eur",
-                "gbp",
-                "hkd",
-                "jpy",
-                "nzd",
-                "sgd",
-                "usd"
-            ]
-        }
-    };
-
     // Update the main button to reflect the payment method being selected.
     const updateButtonLabel = (paymentMethod, bankName) => {
         let amount = store.formatPrice(
@@ -493,7 +324,7 @@
         amountSpan.innerText = amount;
     };
 
-    // Move updateButtonLabel to global to fire it on donation amount change
+    // Move updateButtonLabel to global to fire it on the donation amount change
     window.updateButtonLabel = updateButtonLabel;
 
     const selectCountry = country => {
