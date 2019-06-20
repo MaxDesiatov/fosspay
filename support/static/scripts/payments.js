@@ -89,12 +89,19 @@
             handleAction(response);
         } else {
             // Handle success
+            // Hide donation form and show thanks message
+            document.getElementById("donation-stuff").classList.add("hidden");
+            document.getElementById("thanks").classList.remove("hidden");
 
-            // We need to finish action of creating new payment by creating
-            // new account on server on `/donate` route
-
-            // I should call /donate with form data here when donation is checked by stripe to create account on server
-            // and find out what is goal of invoice.js
+            // If user new to system them show the form to reset password
+            const user = response.userData;
+            if (user.new_account) {
+                document
+                    .getElementById("new-donor-password")
+                    .classList.remove("hidden");
+                document.getElementById("reset-token").value =
+                    user.password_reset;
+            }
         }
     }
 
@@ -172,15 +179,45 @@
         const name = form.querySelector("input[name=name]").value;
         const email = form.querySelector("input[name=email]").value;
         window.donation.email = email;
+        const address = form.querySelector("input[name=address]").value;
+        const city = form.querySelector("input[name=city]").value;
+        const postal_code = form.querySelector("input[name=postal_code]").value;
+        const country = form.querySelector("select[name=country]").value;
 
         // Disable the Pay button to prevent multiple click events.
         submitButton.disabled = true;
         submitButton.textContent = "Processing…";
+
+        // Create a payment source
+        const ownerInfo = {
+            owner: {
+                name: name,
+                address: {
+                    line1: address,
+                    city: city,
+                    postal_code: postal_code,
+                    country: country
+                },
+                email: email
+            }
+        };
+        const { source, sourceError } = await stripe.createSource(
+            card,
+            ownerInfo
+        );
+
+        if (sourceError) {
+            // Inform the user if there was an error
+            const errorElement = document.getElementById("card-errors");
+            errorElement.textContent = error.message;
+        }
+
+        // Create payment method with source
         const { paymentMethod, error } = await stripe.createPaymentMethod(
             "card",
             card,
             {
-                billing_details: { ...{name, email} }
+                billing_details: { ...{ name, email } }
             }
         );
         if (error) {
@@ -188,7 +225,8 @@
         } else {
             // Send paymentMethod.id to your server
             const response = await store.createPaymentIntent({
-                payment_method_id: paymentMethod.id
+                payment_method_id: paymentMethod.id,
+                source
             });
             handleServerResponse(response);
         }
@@ -351,8 +389,8 @@
             country === "US"
                 ? "ZIP"
                 : country === "GB"
-                    ? "Postcode"
-                    : "Postal Code";
+                ? "Postcode"
+                : "Postal Code";
     };
 
     // Show only the payment methods that are relevant to the selected country.

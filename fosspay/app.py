@@ -101,30 +101,43 @@ def inject():
         'int': int
     }
 
-# STRIPE CODE
 @app.route('/support/confirm_payment', methods=['POST'])
 def make_payment_intent():
     # Creates a new PaymentIntent with items from the cart.
     data = json.loads(request.data)
+
     email = data["email"]
-    stripe_token = data["stripe_token"]
+    payment_method_id = data['payment_method_id']
     amount = data["amount"]
     type = data["type"]
     comment = data["comment"]
     project_id = data["project"]
+    source = data["source"]
+
     intent = None
+    userData = None
 
     try:
         if 'payment_method_id' in data:
-            # validate and rejigger the form inputs
-            if not email or not stripe_token or not amount or not type:
-                return {"success": False, "reason": "Invalid request"}, 400
+            # Validate and rejigger the form inputs
+            if not email or not payment_method_id or not amount or not type:
+                reason = "Invalid request. "
+                if not email:
+                    reason += "No email."
+                if not payment_method_id:
+                    reason += "No payment_method_id."
+                if not amount:
+                    reason += "No amount."
+                if not type:
+                    reason += "No type."
+                return {"success": False, "reason": reason}, 400
             try:
                 if project_id is None or project_id == "null":
                     project = None
                 else:
                     project_id = int(project_id)
-                    project = Project.query.filter(Project.id == project_id).first()
+                    project = Project.query.filter(
+                        Project.id == project_id).first()
 
                 if type == "once":
                     type = DonationType.one_time
@@ -133,56 +146,50 @@ def make_payment_intent():
 
                 amount = int(amount)
             except Exception as e:
-                print(e)
-                return {"success": False, "reason": "Invalid request"}, 400
+                reason = "Invalid request. "+e.user_message
+                return {"success": False, "reason": reason}, 400
 
+            # Create new user if not exist, or update the old user payment
+            # source if the user already in the database
             new_account = False
             user = User.query.filter(User.email == email).first()
             if not user:
                 new_account = True
-                user = User(email, binascii.b2a_hex(os.urandom(20)).decode("utf-8"))
-                user.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
+                user = User(email, binascii.b2a_hex(
+                    os.urandom(20)).decode("utf-8"))
+                user.password_reset = binascii.b2a_hex(
+                    os.urandom(20)).decode("utf-8")
                 user.password_reset_expires = datetime.now() + timedelta(days=1)
-                customer = stripe.Customer.create(email=user.email)
+                customer = stripe.Customer.create(
+                    email=user.email, source=source["id"])
 
                 # Attach payment method to the customer:
                 stripe.PaymentMethod.attach(
-                    data['payment_method_id'], customer=customer.id)
-                
+                    payment_method_id, customer=customer.id)
+
                 user.stripe_customer = customer.id
+
+                # Add user to the database
                 db.add(user)
+
+                # Save user data to pass it to the client
+                userData = {
+                    "new_account": new_account,
+                    "password_reset": user.password_reset
+                }
             else:
-                customer = stripe.Customer.retrieve(user.stripe_customer)
-                new_source = customer.sources.create(source=stripe_token)
-                customer.default_source = new_source.id
-                customer.save()
+                # Update the old user payment source
+                card = stripe.Customer.create_source(
+                    user.stripe_customer,
+                    source=source["id"]
+                )
+                stripe.Customer.modify(
+                    user.stripe_customer,
+                    default_source=card["id"]
+                )
 
-            donation = Donation(user, type, amount, project, comment)
-            db.add(donation)
-
-            # try:
-            #     charge = stripe.Charge.create(
-            #         amount=amount,
-            #         currency=_cfg("currency"),
-            #         customer=user.stripe_customer,
-            #         description="Donation to " + _cfg("your-name")
-            #     )
-            # except stripe.error.CardError as e:
-            #     db.rollback()
-            #     db.close()
-            #     return {"success": False, "reason": "Your card was declined."}
-
-            db.commit()
-
-            send_thank_you(user, amount, type == DonationType.monthly)
-            send_new_donation(user, donation)
-
-            # Handle this if you are a man       
-            # if new_account:
-            #     return {"success": True, "new_account": new_account, "password_reset": user.password_reset}
-            # else:
-            #     return {"success": True, "new_account": new_account}
-
+                # Save user data to pass it to the client
+                userData = {"new_account": new_account}
 
             # Create the PaymentIntent
             amount = data['amount']
@@ -195,16 +202,30 @@ def make_payment_intent():
                 save_payment_method=True,
                 customer=user.stripe_customer,
             )
+            try:
+                # Add new donation to the database
+                donation = Donation(user, type, amount, project, comment)
+                db.add(donation)
+            except stripe.error.CardError as e:
+                db.rollback()
+                db.close()
+                return {"success": False, "reason": "Your card was declined."}
+
+            db.commit()
+
+            send_thank_you(user, amount, type == DonationType.monthly)
+            send_new_donation(user, donation)
         elif 'payment_intent_id' in data:
             intent = stripe.PaymentIntent.confirm(data['payment_intent_id'])
-        
+
     except stripe.error.CardError as e:
         # Display error on client
         return json.dumps({'error': e.user_message}), 403
-    
-    return generate_payment_response(intent)
 
-def generate_payment_response(intent):
+    return generate_payment_response(intent, userData)
+
+
+def generate_payment_response(intent, userData):
     if intent.status == 'requires_action' and intent.next_action.type == 'use_stripe_sdk':
         # Tell the client to handle the action
         return json.dumps({
