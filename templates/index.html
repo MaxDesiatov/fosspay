@@ -6,6 +6,7 @@
   window.default_amount = {{ _cfg("default-amount") }};
   window.default_type = "{{ _cfg("default-type") }}";
   window.absoluteLink = (path="") => "{{ absolute_link }}" + path;
+  window.currency = "{{ _cfg("currency") }}";
 
   // Array used for translation of index.js sentences. See contrib/fr/overrides/index.html for example use
   const i18n = {

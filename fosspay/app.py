@@ -194,7 +194,7 @@ def make_payment_intent():
             intent = stripe.PaymentIntent.create(
                 payment_method=data['payment_method_id'],
                 amount=amount,
-                currency='usd',
+                currency=_cfg("currency"),
                 confirmation_method='manual',
                 confirm=True,
                 save_payment_method=True,

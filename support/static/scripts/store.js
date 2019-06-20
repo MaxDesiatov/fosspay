@@ -85,7 +85,7 @@ class Store {
         const orderTotal = document.getElementById("order-total");
         orderTotal.querySelector("[data-total]").innerText = this.formatPrice(
             window.donation.amount,
-            "usd"
+            window.currency
         );
     }
 }

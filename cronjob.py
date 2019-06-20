@@ -29,7 +29,7 @@ for donation in donations:
         try:
             charge = stripe.Charge.create(
                 amount=donation.amount,
-                currency="usd",
+                currency=_cfg("currency"),
                 customer=user.stripe_customer,
                 description="Donation to " + _cfg("your-name")
             )

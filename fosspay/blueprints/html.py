@@ -29,7 +29,7 @@ def get_config():
         'stripePublishableKey': _cfg("stripe-publish"),
         'stripeCountry': os.getenv('STRIPE_ACCOUNT_COUNTRY') or 'US',
         'country': 'US',
-        'currency': 'usd',
+        'currency': _cfg("currency"),
         'paymentMethods': ['card'],
     }
 
