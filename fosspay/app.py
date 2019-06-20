@@ -20,10 +20,8 @@ from datetime import datetime, timedelta
 from fosspay.email import send_thank_you, send_new_donation
 
 
-
-
 app = Flask(
-    __name__, 
+    __name__,
     static_folder=os.path.join(os.getcwd(), "support/static"),
     static_url_path='/support/static'
 )
@@ -40,19 +38,23 @@ app.jinja_loader = ChoiceLoader([
 
 stripe.api_key = _cfg("stripe-secret")
 
+
 @login_manager.user_loader
 def load_user(email):
     return User.query.filter(User.email == email).first()
+
 
 login_manager.anonymous_user = lambda: None
 
 app.register_blueprint(html, url_prefix='/support')
 
+
 @app.after_request
-def add_header(response):    
-  if ('Cache-Control' not in response.headers):
-    response.headers['Cache-Control'] = 'private, max-age=0'
-  return response
+def add_header(response):
+    if ('Cache-Control' not in response.headers):
+        response.headers['Cache-Control'] = 'private, max-age=0'
+    return response
+
 
 try:
     locale.setlocale(locale.LC_ALL, 'en_US')
@@ -72,9 +74,11 @@ if not app.debug:
             sys.exit(1)
         return render_template("internal_error.html"), 500
 
+
 @app.errorhandler(404)
 def handle_404(e):
     return render_template("not_found.html"), 404
+
 
 @app.context_processor
 def inject():
