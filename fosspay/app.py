@@ -177,13 +177,13 @@ def make_payment_intent():
                 }
             else:
                 # Update the old user payment source
-                card = stripe.Customer.create_source(
+                source = stripe.Customer.create_source(
                     user.stripe_customer,
                     source=source["id"]
                 )
                 stripe.Customer.modify(
                     user.stripe_customer,
-                    default_source=card["id"]
+                    default_source=source["id"]
                 )
 
                 # Save user data to pass it to the client
