@@ -11,10 +11,9 @@ from flask import Flask, render_template, jsonify, request
 
 from fosspay.config import _cfg, _cfgi
 from fosspay.database import db, init_db
-from fosspay.objects import User, Donation
+from fosspay.objects import User, Donation, DonationType
 from fosspay.common import *
 from fosspay.network import *
-from fosspay.objects import User, DonationType
 from fosspay.blueprints.html import html
 from datetime import datetime, timedelta
 from fosspay.email import send_thank_you, send_new_donation
