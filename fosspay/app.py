@@ -100,23 +100,26 @@ def inject():
         'int': int
     }
 
+
 @app.route('/support/confirm_payment', methods=['POST'])
 def make_payment_intent():
     data = json.loads(request.data)
 
-    email = data["email"]
-    payment_method_id = data['payment_method_id']
-    amount = data["amount"]
-    type = data["type"]
-    comment = data["comment"]
-    project_id = data["project"]
-    source = data["source"]
-
     intent = None
     userData = None
 
+    if 'userData' in data:
+        userData = data['userData']
+
     try:
         if 'payment_method_id' in data:
+            email = data["email"]
+            payment_method_id = data['payment_method_id']
+            amount = data["amount"]
+            type = data["type"]
+            comment = data["comment"]
+            project_id = data["project"]
+            source = data["source"]
             # Validate and rejigger the form inputs
             if not email or not payment_method_id or not amount or not type:
                 reason = "Invalid request. "
@@ -214,6 +217,7 @@ def make_payment_intent():
             send_thank_you(user, amount, type == DonationType.monthly)
             send_new_donation(user, donation)
         elif 'payment_intent_id' in data:
+            # Fulfill the secure payment
             intent = stripe.PaymentIntent.confirm(data['payment_intent_id'])
 
     except stripe.error.CardError as e:
@@ -228,12 +232,17 @@ def generate_payment_response(intent, userData):
         # Tell the client to handle the action
         return json.dumps({
             'requires_action': True,
-            'payment_intent_client_secret': intent.client_secret
+            'payment_intent_client_secret': intent.client_secret,
+            'userData': userData
         }), 200
     elif intent.status == 'succeeded':
         # The payment didn't need any additional actions and completed
         # Handle the post-payment fulfillment
-        return json.dumps({'success': True, 'intent': intent, 'userData': userData}), 200
+        return json.dumps({
+            'success': True,
+            'intent': intent,
+            'userData': userData
+        }), 200
     else:
         # Invalid status
         return json.dumps({'error': 'Invalid PaymentIntent status'}), 200

@@ -125,7 +125,8 @@
                     body: JSON.stringify({
                         payment_intent_id:
                             handleCardActionResult.paymentIntent.id,
-                        amount: store.getPaymentTotal()
+                        amount: store.getPaymentTotal(),
+                        userData: response.userData
                     })
                 }
             );
