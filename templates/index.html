@@ -291,8 +291,7 @@
       </div>
     </div>
   </div>
-</div>
-<div id="main" class="loading">
+  <div id="main" class="loading">
   <div id="checkout">
     <div id="payment-request">
       <div id="payment-request-button"></div>
@@ -479,40 +478,7 @@
     </div>
   </div>
   </div>
-  <header>
-    <h1>Order Summary</h1>
-  </header>
-  <div id="order-items"></div>
-  <div id="order-total">
-    <div class="line-item shipping">
-      <p class="label">Shipping</p>
-      <p class="price">Free</p>
-    </div>
-    <div class="line-item demo">
-      <div id="demo">
-        <p class="label">Demo in test mode</p>
-        <p class="note">You can copy and paste the following test cards to trigger different scenarios:</p>
-        <table class="note">
-          <tr>
-            <td>Default US card:</td>
-            <td class="card-number">4242<span></span>4242<span></span>4242<span></span>4242</td>
-          </tr>
-          <tr>
-            <td><a href="https://stripe.com/guides/strong-customer-authentication" target="_blank">3D Secure auth</a> required:</td>
-            <td class="card-number">4000<span></span>0000<span></span>0000<span></span>3063</td>
-          </tr>
-          </table>
-        <p class="note"> 
-          See the <a href="https://stripe.com/docs/testing#cards" target="_blank">docs</a> for a full list of test cards. 
-          Non-card payments will redirect to test pages.
-        </p>
-      </div>
-    </div>
-    <div class="line-item total">
-      <p class="label">Total</p>
-      <p class="price" data-total></p>
-    </div>
-  </div>
+</div>
 </div>
 {% include "goal.html" %}
 <div class="container text-center">
