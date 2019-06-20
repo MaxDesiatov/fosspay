@@ -102,7 +102,6 @@ def inject():
 
 @app.route('/support/confirm_payment', methods=['POST'])
 def make_payment_intent():
-    # Creates a new PaymentIntent with items from the cart.
     data = json.loads(request.data)
 
     email = data["email"]
