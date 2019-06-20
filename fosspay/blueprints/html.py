@@ -21,6 +21,7 @@ import requests
 encoding = locale.getdefaultlocale()[1]
 html = Blueprint('html', __name__, template_folder='../../templates')
 
+
 @html.route('/config')
 @json_output
 def get_config():
@@ -32,13 +33,15 @@ def get_config():
         'paymentMethods': ['card'],
     }
 
+
 @html.route("/")
 def index():
     if User.query.count() == 0:
         load_config()
         return render_template("setup.html")
     projects = sorted(Project.query.all(), key=lambda p: p.name)
-    avatar = "//www.gravatar.com/avatar/" + hashlib.md5(_cfg("your-email").encode("utf-8")).hexdigest()
+    avatar = "//www.gravatar.com/avatar/" + \
+        hashlib.md5(_cfg("your-email").encode("utf-8")).hexdigest()
     selected_project = request.args.get("project")
     if selected_project:
         try:
@@ -46,9 +49,9 @@ def index():
         except:
             selected_project = None
     active_recurring = (Donation.query
-            .filter(Donation.type == DonationType.monthly)
-            .filter(Donation.active == True)
-            .filter(Donation.hidden == False))
+                        .filter(Donation.type == DonationType.monthly)
+                        .filter(Donation.active == True)
+                        .filter(Donation.hidden == False))
     recurring_count = active_recurring.count()
     recurring_sum = sum([d.amount for d in active_recurring])
 
@@ -72,8 +75,8 @@ def index():
     liberapay = _cfg("liberapay-campaign")
     if liberapay:
         lp = (requests
-                .get("https://liberapay.com/{}/public.json".format(liberapay))
-            ).json()
+              .get("https://liberapay.com/{}/public.json".format(liberapay))
+              ).json()
         lp_count = lp['npatrons']
         lp_sum = int(float(lp['receiving']['amount']) * 100)
         # Convert from weekly to monthly
@@ -83,13 +86,14 @@ def index():
         lp_sum = 0
 
     return render_template("index.html", projects=projects,
-            avatar=avatar, selected_project=selected_project,
-            recurring_count=recurring_count,
-            recurring_sum=recurring_sum,
-            patreon_count=patreon_count,
-            patreon_sum=patreon_sum,
-            lp_count=lp_count,
-            lp_sum=lp_sum, currency=currency, absolute_link=absolute_link(""))
+                           avatar=avatar, selected_project=selected_project,
+                           recurring_count=recurring_count,
+                           recurring_sum=recurring_sum,
+                           patreon_count=patreon_count,
+                           patreon_sum=patreon_sum,
+                           lp_count=lp_count,
+                           lp_sum=lp_sum, currency=currency, absolute_link=absolute_link(""))
+
 
 @html.route("/setup", methods=["POST"])
 def setup():
@@ -106,28 +110,40 @@ def setup():
     login_user(user)
     return redirect(absolute_link("admin?first-run=1"))
 
+
 @html.route("/admin")
 @adminrequired
 def admin():
     first = request.args.get("first-run") is not None
     projects = Project.query.all()
     unspecified = Donation.query.filter(Donation.project == None).all()
-    donations = Donation.query.order_by(Donation.created.desc()).limit(50).all()
+    donations = Donation.query.order_by(
+        Donation.created.desc()).limit(50).all()
     return render_template("admin.html",
-        first=first,
-        projects=projects,
-        donations=donations,
-        currency=currency,
-        one_times=lambda p: sum([d.amount for d in p.donations if d.type == DonationType.one_time]),
-        recurring=lambda p: sum([d.amount for d in p.donations if d.type == DonationType.monthly and d.active]),
-        recurring_ever=lambda p: sum([d.amount * d.payments for d in p.donations if d.type == DonationType.monthly]),
-        unspecified_one_times=sum([d.amount for d in unspecified if d.type == DonationType.one_time]),
-        unspecified_recurring=sum([d.amount for d in unspecified if d.type == DonationType.monthly and d.active]),
-        unspecified_recurring_ever=sum([d.amount * d.payments for d in unspecified if d.type == DonationType.monthly]),
-        total_one_time=sum([d.amount for d in Donation.query.filter(Donation.type == DonationType.one_time)]),
-        total_recurring=sum([d.amount for d in Donation.query.filter(Donation.type == DonationType.monthly, Donation.active == True)]),
-        total_recurring_ever=sum([d.amount * d.payments for d in Donation.query.filter(Donation.type == DonationType.monthly)]),
-    )
+                           first=first,
+                           projects=projects,
+                           donations=donations,
+                           currency=currency,
+                           one_times=lambda p: sum(
+                               [d.amount for d in p.donations if d.type == DonationType.one_time]),
+                           recurring=lambda p: sum(
+                               [d.amount for d in p.donations if d.type == DonationType.monthly and d.active]),
+                           recurring_ever=lambda p: sum(
+                               [d.amount * d.payments for d in p.donations if d.type == DonationType.monthly]),
+                           unspecified_one_times=sum(
+                               [d.amount for d in unspecified if d.type == DonationType.one_time]),
+                           unspecified_recurring=sum(
+                               [d.amount for d in unspecified if d.type == DonationType.monthly and d.active]),
+                           unspecified_recurring_ever=sum(
+                               [d.amount * d.payments for d in unspecified if d.type == DonationType.monthly]),
+                           total_one_time=sum([d.amount for d in Donation.query.filter(
+                               Donation.type == DonationType.one_time)]),
+                           total_recurring=sum([d.amount for d in Donation.query.filter(
+                               Donation.type == DonationType.monthly, Donation.active == True)]),
+                           total_recurring_ever=sum(
+                               [d.amount * d.payments for d in Donation.query.filter(Donation.type == DonationType.monthly)]),
+                           )
+
 
 @html.route("/create-project", methods=["POST"])
 @adminrequired
@@ -137,6 +153,7 @@ def create_project():
     db.add(project)
     db.commit()
     return redirect(absolute_link("admin"))
+
 
 @html.route("/login", methods=["GET", "POST"])
 def login():
@@ -160,11 +177,84 @@ def login():
         return redirect(absolute_link("admin"))
     return redirect(absolute_link("panel"))
 
+
 @html.route("/logout")
 @loginrequired
 def logout():
     logout_user()
     return redirect(absolute_link())
+
+
+@html.route("/donate", methods=["POST"])
+@json_output
+def donate():
+    email = request.form.get("email")
+    stripe_token = request.form.get("stripe_token")
+    amount = request.form.get("amount")
+    type = request.form.get("type")
+    comment = request.form.get("comment")
+    project_id = request.form.get("project")
+
+    # validate and rejigger the form inputs
+    if not email or not stripe_token or not amount or not type:
+        return {"success": False, "reason": "Invalid request"}, 400
+    try:
+        if project_id is None or project_id == "null":
+            project = None
+        else:
+            project_id = int(project_id)
+            project = Project.query.filter(Project.id == project_id).first()
+
+        if type == "once":
+            type = DonationType.one_time
+        else:
+            type = DonationType.monthly
+
+        amount = int(amount)
+    except:
+        return {"success": False, "reason": "Invalid request"}, 400
+
+    new_account = False
+    user = User.query.filter(User.email == email).first()
+    if not user:
+        new_account = True
+        user = User(email, binascii.b2a_hex(os.urandom(20)).decode("utf-8"))
+        user.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
+        user.password_reset_expires = datetime.now() + timedelta(days=1)
+        customer = stripe.Customer.create(email=user.email, card=stripe_token)
+        user.stripe_customer = customer.id
+        db.add(user)
+    else:
+        customer = stripe.Customer.retrieve(user.stripe_customer)
+        new_source = customer.sources.create(source=stripe_token)
+        customer.default_source = new_source.id
+        customer.save()
+
+    donation = Donation(user, type, amount, project, comment)
+    db.add(donation)
+
+    try:
+        charge = stripe.Charge.create(
+            amount=amount,
+            currency=_cfg("currency"),
+            customer=user.stripe_customer,
+            description="Donation to " + _cfg("your-name")
+        )
+    except stripe.error.CardError as e:
+        db.rollback()
+        db.close()
+        return {"success": False, "reason": "Your card was declined."}
+
+    db.commit()
+
+    send_thank_you(user, amount, type == DonationType.monthly)
+    send_new_donation(user, donation)
+
+    if new_account:
+        return {"success": True, "new_account": new_account, "password_reset": user.password_reset}
+    else:
+        return {"success": True, "new_account": new_account}
+
 
 def issue_password_reset(email):
     user = User.query.filter(User.email == email).first()
@@ -175,6 +265,7 @@ def issue_password_reset(email):
     send_password_reset(user)
     db.commit()
     return render_template("reset.html", done=True)
+
 
 @html.route("/password-reset", methods=['GET', 'POST'], defaults={'token': None})
 @html.route("/password-reset/<token>", methods=['GET', 'POST'])
@@ -217,13 +308,17 @@ def reset_password(token):
         login_user(user)
         return redirect(absolute_link("panel"))
 
+
 @html.route("/panel")
 @loginrequired
 def panel():
     return render_template("panel.html",
-        one_times=lambda u: [d for d in u.donations if d.type == DonationType.one_time],
-        recurring=lambda u: [d for d in u.donations if d.type == DonationType.monthly and d.active],
-        currency=currency)
+                           one_times=lambda u: [
+                               d for d in u.donations if d.type == DonationType.one_time],
+                           recurring=lambda u: [
+                               d for d in u.donations if d.type == DonationType.monthly and d.active],
+                           currency=currency)
+
 
 @html.route("/cancel/<id>")
 @loginrequired
@@ -245,12 +340,13 @@ def deleteAccount(id):
     user = User.query.filter(User.id == id)
     # remove user donation
     Donation.query.filter(Donation.user_id == id).delete()
-    # send warm mail 
+    # send warm mail
     send_account_deleted(user)
     # remove user
     user.delete()
     db.commit()
     return redirect(absolute_link())
+
 
 @html.route("/invoice/<id>")
 def invoice(id):
