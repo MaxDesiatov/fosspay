@@ -192,25 +192,31 @@ def make_payment_intent():
                 # Save user data to pass it to the client
                 userData = {"new_account": new_account}
 
-            # Create the PaymentIntent
-            amount = data['amount']
-            intent = stripe.PaymentIntent.create(
-                payment_method=data['payment_method_id'],
-                amount=amount,
-                currency=_cfg("currency"),
-                confirmation_method='manual',
-                confirm=True,
-                save_payment_method=True,
-                customer=user.stripe_customer,
-            )
             try:
+                # Create the PaymentIntent
+                amount = data['amount']
+                intent = stripe.PaymentIntent.create(
+                    payment_method=data['payment_method_id'],
+                    amount=amount,
+                    currency=_cfg("currency"),
+                    confirmation_method='manual',
+                    confirm=True,
+                    save_payment_method=True,
+                    customer=user.stripe_customer,
+                )
+
                 # Add new donation to the database
                 donation = Donation(user, type, amount, project, comment)
                 db.add(donation)
             except stripe.error.CardError as e:
                 db.rollback()
                 db.close()
-                return {"success": False, "reason": "Your card was declined."}
+                return {
+                    "success": False, "reason": "Your card was declined."
+                }, 400
+            except Exception as e:
+                reason = "Invalid request. "+e.user_message
+                return {"success": False, "reason": reason}, 400
 
             db.commit()
 
