@@ -40,7 +40,6 @@ class Store {
     // Create the PaymentIntent with the cart details.
     async createPaymentIntent({ payment_method_id, source }) {
         try {
-            const email = window.donation.email;
             const stripe_token = payment_method_id;
 
             const response = await fetch(absoluteLink("confirm_payment"), {
@@ -51,9 +50,8 @@ class Store {
                 body: JSON.stringify({
                     payment_method_id,
                     stripe_token,
-                    email,
-                    ...window.donation,
-                    source
+                    source,
+                    ...window.donation
                 })
             });
             const data = await response.json();
