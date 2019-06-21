@@ -1715,9 +1715,6 @@ select:-webkit-autofill {
 /* Media Queries */
 
 @media only screen and (max-width: 1024px) {
-  #main.checkout:not(.success):not(.error) {
-    width: calc(100% - 320px);
-  }
   #summary {
     width: 320px;
     right: -320px;
@@ -1756,10 +1753,6 @@ select:-webkit-autofill {
 }
 
 @media only screen and (max-width: 500px) {
-  header {
-    height: 60px;
-    background-size: 40px 40px;
-  }
   header a.shop,
   header a.github {
     display: none;
