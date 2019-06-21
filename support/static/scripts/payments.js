@@ -22,6 +22,9 @@
     const submitButton = form.querySelector("button[type=submit]");
     const amountSpan = document.getElementById("payment-amount");
 
+    // Variable to store submit button text to reuse it on error accurate
+    let previousSubmitButtonText = "";
+
     /**
      * Setup Stripe Elements.
      */
@@ -44,8 +47,12 @@
     // Mount the Card Element on the page.
     card.mount("#card-element");
 
-    // Monitor change events on the Card Element to display any errors.
-    card.on("change", ({ error }) => {
+    function resetSubmitButton() {
+        submitButton.disabled = false;
+        submitButton.innerText = previousSubmitButtonText;
+    }
+
+    function handleCardError({ error }) {
         const cardErrors = document.getElementById("card-errors");
         if (error) {
             cardErrors.textContent = error.message;
@@ -53,9 +60,13 @@
         } else {
             cardErrors.classList.remove("visible");
         }
+
         // Re-enable the Pay button.
-        submitButton.disabled = false;
-    });
+        resetSubmitButton();
+    }
+
+    // Monitor change events on the Card Element to display any errors.
+    card.on("change", ({ error }) => handleCardError({ error }));
 
     initIDEALBank(elements);
     initIBAN(elements);
@@ -84,6 +95,7 @@
     async function handleServerResponse(response) {
         if (response.error) {
             // Handle error
+            handleServerError({ error: response.error, cb: resetSubmitButton });
         } else if (response.requires_action) {
             // Handle required action
             handleAction(response);
@@ -112,6 +124,10 @@
 
         if (handleCardActionResult.error) {
             // Show error in payment form
+            handleServerError({
+                error: handleCardActionResult.error.message,
+                cb: resetSubmitButton
+            });
         } else {
             // The card action has been handled
             // The PaymentIntent can be confirmed again on the server
@@ -209,8 +225,7 @@
 
         if (sourceError) {
             // Inform the user if there was an error
-            const errorElement = document.getElementById("card-errors");
-            errorElement.textContent = error.message;
+            handleServerError({ error: sourceError, cb: resetSubmitButton });
         }
 
         // Create payment method with source
@@ -223,6 +238,7 @@
         );
         if (error) {
             // Show error in payment form
+            handleServerError({ error: error, cb: resetSubmitButton });
         } else {
             // Send paymentMethod.id to your server
             const response = await store.createPaymentIntent({
@@ -356,7 +372,10 @@
         if (paymentMethod === "sepa_debit" && bankName) {
             label = `Debit ${amount} from ${bankName}`;
         }
+
+        previousSubmitButtonText = label;
         submitButton.innerText = label;
+        submitButton.disabled = false;
 
         // Update above button text
         amountSpan.innerText = amount;
