@@ -11,7 +11,7 @@ from flask import Flask, render_template, jsonify, request
 
 from fosspay.config import _cfg, _cfgi
 from fosspay.database import db, init_db
-from fosspay.objects import User, Donation, DonationType
+from fosspay.objects import User, Donation, DonationType, Project
 from fosspay.common import *
 from fosspay.network import *
 from fosspay.blueprints.html import html
@@ -122,16 +122,16 @@ def make_payment_intent():
             source = data["source"]
             # Validate and rejigger the form inputs
             if not email or not payment_method_id or not amount or not type:
-                reason = "Invalid request. "
+                error = "Invalid request. "
                 if not email:
-                    reason += "No email."
+                    error += "No email."
                 if not payment_method_id:
-                    reason += "No payment_method_id."
+                    error += "No payment_method_id."
                 if not amount:
-                    reason += "No amount."
+                    error += "No amount."
                 if not type:
-                    reason += "No type."
-                return {"success": False, "reason": reason}, 400
+                    error += "No type."
+                return {"success": False, "error": error}, 400
             try:
                 if project_id is None or project_id == "null":
                     project = None
@@ -147,8 +147,8 @@ def make_payment_intent():
 
                 amount = int(amount)
             except Exception as e:
-                reason = "Invalid request. "+e.user_message
-                return {"success": False, "reason": reason}, 400
+                error = "Invalid request. "+e.user_message
+                return {"success": False, "error": error}, 400
 
             # Create new user if not exist, or update the old user payment
             # source if the user already in the database
@@ -212,11 +212,11 @@ def make_payment_intent():
                 db.rollback()
                 db.close()
                 return {
-                    "success": False, "reason": "Your card was declined."
+                    "success": False, "error": "Your card was declined."
                 }, 400
             except Exception as e:
-                reason = "Invalid request. "+e.user_message
-                return {"success": False, "reason": reason}, 400
+                error = "Invalid request. "+e.user_message
+                return {"success": False, "error": error}, 400
 
             db.commit()
 
@@ -228,7 +228,8 @@ def make_payment_intent():
 
     except stripe.error.CardError as e:
         # Display error on client
-        return json.dumps({'error': e.user_message}), 403
+        error = "Invalid request. "+e.user_message
+        return {"success": False, "error": error}, 400
 
     return generate_payment_response(intent, userData)
 
@@ -251,7 +252,10 @@ def generate_payment_response(intent, userData):
         }), 200
     else:
         # Invalid status
-        return json.dumps({'error': 'Invalid PaymentIntent status'}), 200
+        return json.dumps({
+            'success': False,
+            'error': 'Invalid PaymentIntent status'
+        }), 400
 
 
 @app.route('/support/confirm_payment/<string:id>/status', methods=['GET'])
