@@ -13,7 +13,7 @@ async function getConfig() {
     }
 }
 
-// Create the PaymentIntent with the cart details.
+// Create the PaymentIntent.
 async function createPaymentIntent({ payment_method_id, source }) {
     try {
         const stripe_token = payment_method_id;
