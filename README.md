@@ -27,7 +27,7 @@ You will need a number of things set up before you start:
 Install these things:
 
 * Python 3
-* pip (python 3) or [pipenv](https://github.com/pypa/pipenv/). Pipenv will help to install packages specific versions.
+* pip (python 3) or [pipenv](https://github.com/pypa/pipenv/). Pipenv will help to install specific package versions.
 * PostgreSQL
 
 You're responsible for setting up PostgreSQL yourself. Prepare a connection
