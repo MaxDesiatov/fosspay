@@ -1807,3 +1807,7 @@ select:-webkit-autofill {
     text-align: center;
   }
 }
+
+.amounts {
+  table-layout: auto;
+}

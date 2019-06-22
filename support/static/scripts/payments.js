@@ -14,8 +14,8 @@
 (async () => {
     "use strict";
 
-    // Retrieve the configuration for the store.
-    const config = await store.getConfig();
+    // Retrieve the configuration
+    const config = await getConfig();
 
     // Create references to the main form and its submit button.
     const form = document.getElementById("payment-form");
@@ -86,7 +86,7 @@
         currency: config.currency,
         total: {
             label: "Total",
-            amount: store.getPaymentTotal()
+            amount: window.donation.amount
         },
         requestShipping: false,
         requestPayerEmail: true
@@ -141,7 +141,7 @@
                     body: JSON.stringify({
                         payment_intent_id:
                             handleCardActionResult.paymentIntent.id,
-                        amount: store.getPaymentTotal(),
+                        amount: window.donation.amount,
                         userData: response.userData
                     })
                 }
@@ -241,7 +241,7 @@
             handleServerError({ error: error, cb: resetSubmitButton });
         } else {
             // Send paymentMethod.id to your server
-            const response = await store.createPaymentIntent({
+            const response = await createPaymentIntent({
                 payment_method_id: paymentMethod.id,
                 source
             });
@@ -357,10 +357,7 @@
 
     // Update the main button to reflect the payment method being selected.
     const updateButtonLabel = (paymentMethod, bankName) => {
-        let amount = store.formatPrice(
-            store.getPaymentTotal(),
-            config.currency
-        );
+        let amount = formatPrice(window.donation.amount, config.currency);
         let name = paymentMethods[paymentMethod].name;
         let label = `Sponsor ${amount}`;
         if (paymentMethod !== "card") {
