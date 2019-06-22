@@ -27,7 +27,7 @@ You will need a number of things set up before you start:
 Install these things:
 
 * Python 3
-* pip (python 3)
+* [pipenv](https://github.com/pypa/pipenv/)
 * PostgreSQL
 
 You're responsible for setting up PostgreSQL yourself. Prepare a connection
@@ -40,7 +40,7 @@ Clone the git repository on the server that you want to host fosspay on:
 
 Install the Python packages:
 
-    sudo pip3 install -r requirements.txt
+    pipenv install
 
 Compile the static assets:
 
@@ -50,7 +50,13 @@ Create a configuration file:
 
     cp config.ini.example config.ini
 
-Edit `config.ini` to your liking. Then, you can run the following to start up
+Edit `config.ini` to your liking.
+
+Activate the virtual environment associated with project.
+
+    pipenv shell
+
+Then, you can run the following to start up
 the development server:
 
     python3 app.py
