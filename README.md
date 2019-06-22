@@ -56,7 +56,7 @@ Create a configuration file:
 
 Edit `config.ini` to your liking.
 
-Activate the virtual environment associated with project.
+Activate the virtual environment associated with the project.
 
     pipenv shell
 
