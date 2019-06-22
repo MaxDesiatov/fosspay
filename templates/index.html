@@ -26,12 +26,12 @@
 </script>
 <script src="https://js.stripe.com/v3/"></script>
 <script src="{{ root }}/static/scripts/index.js"></script>
+<script src="{{ root }}/static/scripts/helpers.js"></script>
 <script src="{{ root }}/static/scripts/error.js"></script>
 <script src="{{ root }}/static/scripts/elementsStyle.js"></script>
 <script src="{{ root }}/static/scripts/paymentMethods.js"></script>
 <script src="{{ root }}/static/scripts/iDEALBank.js"></script>
 <script src="{{ root }}/static/scripts/iban.js"></script>
-<script src="{{ root }}/static/scripts/store.js"></script>
 <script src="{{ root }}/static/scripts/payments.js"></script>
 {% endblock %} {% block body %}
 <header>
@@ -313,7 +313,7 @@
           </label>
           <label>
             <span>Address</span>
-            <input name="address" class="field" placeholder="185 Berry Street Suite 550">
+            <input name="address" class="field" placeholder="5 Swift Street Suite 1">
           </label>
           <label>
             <span>City</span>
