@@ -27,7 +27,7 @@ You will need a number of things set up before you start:
 Install these things:
 
 * Python 3
-* pip (python 3)
+* pip (python 3) or [pipenv](https://github.com/pypa/pipenv/). Pipenv will help to install specific package versions.
 * PostgreSQL
 
 You're responsible for setting up PostgreSQL yourself. Prepare a connection
@@ -42,6 +42,10 @@ Install the Python packages:
 
     sudo pip3 install -r requirements.txt
 
+or if you have `pipenv` installed
+
+    pipenv install
+
 Compile the static assets:
 
     make
@@ -50,7 +54,13 @@ Create a configuration file:
 
     cp config.ini.example config.ini
 
-Edit `config.ini` to your liking. Then, you can run the following to start up
+Edit `config.ini` to your liking.
+
+Activate the virtual environment associated with the project.
+
+    pipenv shell
+
+Then, you can run the following to start up
 the development server:
 
     python3 app.py
