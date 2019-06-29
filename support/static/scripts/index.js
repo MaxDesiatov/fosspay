@@ -9,6 +9,16 @@
 
     updateFrequencySpan(window.donation.type);
 
+    function setAmount(value) {
+        donation.amount = value * 100;
+        window._paymentRequest.update({
+            total: {
+                label: "Total",
+                amount: donation.amount,
+            }
+        });
+    }
+
     function selectAmount(e) {
         e.preventDefault();
         document.querySelector(".amounts .active").classList.remove("active");
@@ -17,11 +27,10 @@
         const amount = e.target.dataset.amount;
         if (amount === "custom") {
             custom.classList.remove("hidden");
-            donation.amount =
-                +document.querySelector("#custom-amount-text").value * 100;
+            setAmount(+document.querySelector("#custom-amount-text").value);
         } else {
             custom.classList.add("hidden");
-            donation.amount = +e.target.dataset.amount * 100;
+            setAmount(+e.target.dataset.amount);
         }
 
         // update Pay button
@@ -69,7 +78,7 @@
                 value = 1;
             }
             e.target.value = value;
-            donation.amount = value * 100;
+            setAmount(value * 100);
 
             // update Pay button
             updateButtonLabel("card");

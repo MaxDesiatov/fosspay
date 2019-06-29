@@ -134,122 +134,6 @@ h2 {
   line-height: 1.2;
 }
 
-.cm-s-xcode .cm-header {
-  color: blue;
-}
-
-.cm-s-xcode .cm-quote {
-  color: #090;
-}
-
-.cm-negative {
-  color: #d44;
-}
-
-.cm-positive {
-  color: #292;
-}
-
-.cm-header,
-.cm-strong {
-  font-weight: bold;
-}
-
-.cm-em {
-  font-style: italic;
-}
-
-.cm-link {
-  text-decoration: underline;
-}
-
-.cm-strikethrough {
-  text-decoration: line-through;
-}
-
-.cm-s-xcode .cm-keyword {
-  color: #708;
-}
-
-.cm-s-xcode .cm-atom {
-  color: #219;
-}
-
-.cm-s-xcode .cm-number {
-  color: #164;
-}
-
-.cm-s-xcode .cm-def {
-  color: #00f;
-}
-
-.cm-s-xcode .cm-variable,
-.cm-s-xcode .cm-punctuation,
-.cm-s-xcode .cm-property,
-.cm-s-xcode .cm-operator {
-}
-
-.cm-s-xcode .cm-variable-2 {
-  color: #05a;
-}
-
-.cm-s-xcode .cm-variable-3,
-.cm-s-default .cm-type {
-  color: #085;
-}
-
-.cm-s-xcode .cm-comment {
-  color: #a50;
-}
-
-.cm-s-xcode .cm-string {
-  color: #a11;
-}
-
-.cm-s-xcode .cm-string-2 {
-  color: #f50;
-}
-
-.cm-s-xcode .cm-meta {
-  color: #555;
-}
-
-.cm-s-xcode .cm-qualifier {
-  color: #555;
-}
-
-.cm-s-xcode .cm-builtin {
-  color: #30a;
-}
-
-.cm-s-xcode .cm-bracket {
-  color: #997;
-}
-
-.cm-s-xcode .cm-tag {
-  color: #170;
-}
-
-.cm-s-xcode .cm-attribute {
-  color: #00c;
-}
-
-.cm-s-xcode .cm-hr {
-  color: #999;
-}
-
-.cm-s-xcode .cm-link {
-  color: #00c;
-}
-
-.cm-s-xcode .cm-error {
-  color: #f00;
-}
-
-.cm-invalidchar {
-  color: #f00;
-}
-
 html {
   font-family: sans-serif;
   -ms-text-size-adjust: 100%;
@@ -1127,7 +1011,6 @@ p.instruction {
   margin-top: -32px;
   padding: 0 5px;
   text-align: center;
-  background: #f8fbfd;
 }
 
 p.tip {
@@ -1189,10 +1072,6 @@ fieldset select {
   background: transparent;
 }
 
-fieldset select:focus {
-  color: #666ee8;
-}
-
 ::-webkit-input-placeholder {
   color: #cfd7e0;
 }
@@ -1206,7 +1085,6 @@ fieldset select:focus {
 
 input:-webkit-autofill,
 select:-webkit-autofill {
-  -webkit-text-fill-color: #666ee8;
   transition: background-color 100000000s;
   -webkit-animation: 1ms void-animation-out 1s;
 }
@@ -1225,7 +1103,7 @@ select:-webkit-autofill {
 
 #checkout button {
   display: block;
-  background: #666ee8;
+  background: #007acc;
   color: #fff;
   box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
   border-radius: 4px;
@@ -1239,7 +1117,7 @@ select:-webkit-autofill {
 }
 
 #checkout button:focus {
-  background: #555abf;
+  background: #0059aa;
 }
 
 #checkout button:hover {
@@ -1249,7 +1127,7 @@ select:-webkit-autofill {
 }
 
 #checkout button:active {
-  background: #43458b;
+  background: #0059aa;
 }
 
 #country {
@@ -1405,10 +1283,6 @@ select:-webkit-autofill {
 #payment-methods label:hover {
   color: #6772e5;
   cursor: pointer;
-}
-
-#payment-methods input:checked + label {
-  color: #6772e5;
 }
 
 #payment-methods label:hover::before,
@@ -1581,33 +1455,6 @@ select:-webkit-autofill {
   font-size: 24px;
   font-weight: 400;
   line-height: inherit;
-}
-
-#demo {
-  padding: 15px;
-  margin: -15px -15px 0;
-  background: #f6f9fc;
-  border-radius: 5px;
-}
-
-#demo p.label {
-  margin: 0 0 10px;
-  color: #666ee8;
-}
-
-#demo .note {
-  display: block;
-  margin: 10px 0 0;
-  font-size: 14px;
-}
-
-#demo p.note a,
-#demo p.note em {
-  font-size: 14px;
-}
-
-#demo p.note a:hover {
-  text-decoration: none;
 }
 
 .card-number {

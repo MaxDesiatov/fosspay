@@ -1,4 +1,4 @@
 window.handleServerError = ({ error = "", cb = () => {} }) => {
-    alert(error);
+    alert(JSON.stringify(error));
     cb(error);
 };

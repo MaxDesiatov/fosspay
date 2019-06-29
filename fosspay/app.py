@@ -132,23 +132,19 @@ def make_payment_intent():
                 if not type:
                     error += "No type."
                 return {"success": False, "error": error}, 400
-            try:
-                if project_id is None or project_id == "null":
-                    project = None
-                else:
-                    project_id = int(project_id)
-                    project = Project.query.filter(
-                        Project.id == project_id).first()
+            if project_id is None or project_id == "null":
+                project = None
+            else:
+                project_id = int(project_id)
+                project = Project.query.filter(
+                    Project.id == project_id).first()
 
-                if type == "once":
-                    type = DonationType.one_time
-                else:
-                    type = DonationType.monthly
+            if type == "once":
+                type = DonationType.one_time
+            else:
+                type = DonationType.monthly
 
-                amount = int(amount)
-            except Exception as e:
-                error = "Invalid request. "+e.user_message
-                return {"success": False, "error": error}, 400
+            amount = int(amount)
 
             # Create new user if not exist, or update the old user payment
             # source if the user already in the database

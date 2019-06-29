@@ -1,16 +1,3 @@
-/**
- * payments.js
- * Stripe Payments Demo. Created by Romain Huet (@romainhuet)
- * and Thorsten Schaeff (@thorwebdev).
- *
- * This modern JavaScript file handles the checkout process using Stripe.
- *
- * 1. It shows how to accept card payments with the `card` Element, and
- * the `paymentRequestButton` Element for Payment Request and Apple Pay.
- * 2. It shows how to use the Stripe Sources API to accept non-card payments,
- * such as iDEAL, SOFORT, SEPA Direct Debit, and more.
- */
-
 (async () => {
     "use strict";
 
@@ -68,9 +55,6 @@
     // Monitor change events on the Card Element to display any errors.
     card.on("change", ({ error }) => handleCardError({ error }));
 
-    initIDEALBank(elements);
-    initIBAN(elements);
-
     /**
      * Implement a Stripe Payment Request Button Element.
      *
@@ -81,7 +65,7 @@
      */
 
     // Create the payment request.
-    const paymentRequest = stripe.paymentRequest({
+    window._paymentRequest = stripe.paymentRequest({
         country: config.stripeCountry,
         currency: config.currency,
         total: {
@@ -92,10 +76,53 @@
         requestPayerEmail: true
     });
 
+    // Create the Payment Request Button.
+    const paymentRequestButton = elements.create("paymentRequestButton", {
+        paymentRequest: window._paymentRequest
+    });
+
+    // Check if the Payment Request is available (or Apple Pay on the Web).
+    if (await window._paymentRequest.canMakePayment()) {
+        // Display the Pay button by mounting the Element in the DOM.
+        paymentRequestButton.mount("#payment-request-button");
+        // Replace the instruction.
+        document.querySelector(".instruction").innerText =
+            "Or enter your payment details below";
+        // Show the payment request section.
+        document.getElementById("payment-request").classList.add("visible");
+    }
+
+    window._paymentRequest.on('paymentmethod', async (ev) => {
+        const {
+          error: confirmError
+        } = await stripe.confirmPaymentIntent(clientSecret, {
+          payment_method: ev.paymentMethod.id,
+        });
+      
+        if (confirmError) {
+          // Report to the browser that the payment failed, prompting it to
+          // re-show the payment interface, or show an error message and close
+          // the payment interface.
+          ev.complete('fail');
+        } else {
+          // Report to the browser that the confirmation was successful, prompting
+          // it to close the browser payment method collection interface.
+          ev.complete('success');
+          // Let Stripe.js handle the rest of the payment flow.
+          const {error} = await stripe.handleCardPayment(clientSecret);
+          if (error) {
+            // The payment failed -- ask your customer for a new payment method.
+            handleError(error);
+          } else {
+            // The payment has succeeded.
+          }
+        }
+      });
+
     async function handleServerResponse(response) {
         if (response.error) {
             // Handle error
-            handleServerError({ error: response.error, cb: resetSubmitButton });
+            handleError({ error: response.error, cb: resetSubmitButton });
         } else if (response.requires_action) {
             // Handle required action
             handleAction(response);
@@ -124,7 +151,7 @@
 
         if (handleCardActionResult.error) {
             // Show error in payment form
-            handleServerError({
+            handleError({
                 error: handleCardActionResult.error.message,
                 cb: resetSubmitButton
             });
@@ -151,23 +178,6 @@
         }
     }
 
-    // Create the Payment Request Button.
-    const paymentRequestButton = elements.create("paymentRequestButton", {
-        paymentRequest
-    });
-
-    // Check if the Payment Request is available (or Apple Pay on the Web).
-    const paymentRequestSupport = await paymentRequest.canMakePayment();
-    if (paymentRequestSupport) {
-        // Display the Pay button by mounting the Element in the DOM.
-        paymentRequestButton.mount("#payment-request-button");
-        // Replace the instruction.
-        document.querySelector(".instruction").innerText =
-            "Or enter your payment details below";
-        // Show the payment request section.
-        document.getElementById("payment-request").classList.add("visible");
-    }
-
     /**
      * Handle the form submission.
      *
@@ -179,15 +189,6 @@
      * shipping information directly.
      */
 
-    // Listen to changes to the user-selected country.
-    form.querySelector("select[name=country]").addEventListener(
-        "change",
-        event => {
-            event.preventDefault();
-            selectCountry(event.target.value);
-        }
-    );
-
     // Submit handler for our payment form.
     form.addEventListener("submit", async event => {
         event.preventDefault();
@@ -196,10 +197,6 @@
         const name = form.querySelector("input[name=name]").value;
         const email = form.querySelector("input[name=email]").value;
         window.donation.email = email;
-        const address = form.querySelector("input[name=address]").value;
-        const city = form.querySelector("input[name=city]").value;
-        const postal_code = form.querySelector("input[name=postal_code]").value;
-        const country = form.querySelector("select[name=country]").value;
 
         // Disable the Pay button to prevent multiple click events.
         submitButton.disabled = true;
@@ -209,12 +206,6 @@
         const ownerInfo = {
             owner: {
                 name: name,
-                address: {
-                    line1: address,
-                    city: city,
-                    postal_code: postal_code,
-                    country: country
-                },
                 email: email
             }
         };
@@ -225,7 +216,7 @@
 
         if (sourceError) {
             // Inform the user if there was an error
-            handleServerError({ error: sourceError, cb: resetSubmitButton });
+            handleError({ error: sourceError, cb: resetSubmitButton });
         }
 
         // Create payment method with source
@@ -238,7 +229,7 @@
         );
         if (error) {
             // Show error in payment form
-            handleServerError({ error: error, cb: resetSubmitButton });
+            handleError({ error: error, cb: resetSubmitButton });
         } else {
             // Send paymentMethod.id to your server
             const response = await createPaymentIntent({
@@ -381,35 +372,6 @@
     // Move updateButtonLabel to global to fire it on the donation amount change
     window.updateButtonLabel = updateButtonLabel;
 
-    const selectCountry = country => {
-        const selector = document.getElementById("country");
-        selector.querySelector(`option[value=${country}]`).selected =
-            "selected";
-        selector.className = `field ${country}`;
-
-        // Trigger the methods to show relevant fields and payment methods on page load.
-        showRelevantFormFields();
-        showRelevantPaymentMethods();
-    };
-
-    // Show only form fields that are relevant to the selected country.
-    const showRelevantFormFields = country => {
-        if (!country) {
-            country = form.querySelector("select[name=country] option:checked")
-                .value;
-        }
-        const zipLabel = form.querySelector("label.zip");
-        // Only show the state input for the United States.
-        zipLabel.parentElement.classList.toggle("with-state", country === "US");
-        // Update the ZIP label to make it more relevant for each country.
-        form.querySelector("label.zip span").innerText =
-            country === "US"
-                ? "ZIP"
-                : country === "GB"
-                ? "Postcode"
-                : "Postal Code";
-    };
-
     // Show only the payment methods that are relevant to the selected country.
     const showRelevantPaymentMethods = country => {
         if (!country) {
@@ -469,18 +431,6 @@
                 "visible",
                 payment === "card"
             );
-            form.querySelector(".payment-info.ideal").classList.toggle(
-                "visible",
-                payment === "ideal"
-            );
-            form.querySelector(".payment-info.sepa_debit").classList.toggle(
-                "visible",
-                payment === "sepa_debit"
-            );
-            form.querySelector(".payment-info.wechat").classList.toggle(
-                "visible",
-                payment === "wechat"
-            );
             form.querySelector(".payment-info.redirect").classList.toggle(
                 "visible",
                 flow === "redirect"
@@ -494,16 +444,4 @@
                 .classList.remove("visible", payment !== "card");
         });
     }
-
-    // Select the default country from the config on page load.
-    let country = config.country;
-    // Override it if a valid country is passed as a URL parameter.
-    const urlParams = new URLSearchParams(window.location.search);
-    let countryParam = urlParams.get("country")
-        ? urlParams.get("country").toUpperCase()
-        : config.country;
-    if (form.querySelector(`option[value="${countryParam}"]`)) {
-        country = countryParam;
-    }
-    selectCountry(country);
 })();
