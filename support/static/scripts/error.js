@@ -1,4 +1,4 @@
-window.handleServerError = ({ error = "", cb = () => {} }) => {
+window.handleError = ({ error = "", cb = () => {} }) => {
     alert(JSON.stringify(error));
     cb(error);
 };

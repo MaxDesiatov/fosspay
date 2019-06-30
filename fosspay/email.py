@@ -29,7 +29,7 @@ def send_thank_you(user, amount, monthly):
                 "monthly": monthly,
                 "your_email": _cfg("your-email")
             })))
-    message['Subject'] = "Thank you for your donation!"
+    message['Subject'] = "Thank you for your sponsorship!"
     message['From'] = _cfg("smtp-from")
     message['To'] = user.email
     message['Date'] = format_datetime(localtime())

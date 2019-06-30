@@ -1,0 +1,94 @@
+:root {
+  --size: 1.75rem;
+  --blueish: #007acc;
+}
+
+.nav-link.inactive {
+  box-shadow: none;
+}
+
+.nav-link.active {
+  pointer-events: none;
+  cursor: default;
+  box-shadow: 0 1px 0 0 currentColor;
+}
+
+.nav-link:hover {
+  text-decoration: none;
+  box-shadow: none;
+}
+
+.btn-group {
+  display: flex;
+  justify-content: center;
+}
+
+.form button {
+  cursor: pointer;
+}
+
+.btn {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-image: none;
+  border: 1px solid transparent;
+  border-color: #ccc;
+  flex-basis: 20%;
+  background-color: #fff;
+}
+
+.btn:first-child {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.btn:last-child {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.custom-amount {
+  margin-top: var(--size);
+  margin-left: calc(var(--size) * 0.25);
+  width: calc(var(--size) * 3);
+}
+
+button.checkout {
+  margin-top: 1rem;
+  display: block;
+  background: var(--blueish);
+  color: #fff;
+  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  border: 0;
+  font-weight: 700;
+  width: calc(var(--size) * 15);
+  height: 40px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.btn-default.active,
+.btn-default.active:hover {
+  color: #fff;
+  background-color: var(--blueish);
+  border-color: var(--blueish);
+}
+
+.hidden {
+  display: none;
+}
