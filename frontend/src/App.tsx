@@ -18,7 +18,7 @@ function App() {
       }}
     >
       <header className='App-header'>
-        <center>
+        <div>
           <h1
             style={{
               ...scale(1.45),
@@ -37,7 +37,7 @@ function App() {
               Max Desiatov
             </a>
           </h1>
-        </center>
+        </div>
 
         <Bio />
         <Navigation />
@@ -45,7 +45,7 @@ function App() {
         <Form
           amounts={[5, 10, 20, 50]}
           currency={{ symbol: '$' }}
-          projects={[{ name: 'desiatov.com blog' }]}
+          projects={[{ id: 1, name: 'desiatov.com blog' }]}
         />
       </header>
     </div>

@@ -1,20 +1,28 @@
 import React, { Dispatch, useState, useReducer } from 'react';
 import { Record, RecordOf } from 'immutable';
 
+import 'whatwg-fetch';
+
+declare var Stripe: any;
+
+const stripe = Stripe('pk_test_VGxLHSuHEFAECSXPBl1ewD9C');
+
 type Frequency = 'once' | 'monthly';
 
 const StateFactory = Record({
   amount: 10,
-  email: undefined,
+  comments: '',
+  email: '',
   frequency: 'monthly',
-  project: null,
+  projectID: null,
 } as State);
 
 interface State {
   amount: number;
-  email?: string;
+  comments: string;
+  email: string;
   frequency: Frequency;
-  project: Project;
+  projectID: number | null;
 }
 
 interface Action {
@@ -24,9 +32,25 @@ interface Action {
 
 enum ActionType {
   setAmount = 'setAmount',
+  setComments = 'setComments',
   setEmail = 'setEmail',
   setFrequency = 'setFrequency',
   setProject = 'setProject',
+}
+
+function reducer(state: RecordOf<State>, action: Action): RecordOf<State> {
+  switch (action.type) {
+    case ActionType.setAmount:
+      return state.set('amount', action.payload);
+    case ActionType.setEmail:
+      return state.set('email', action.payload);
+    case ActionType.setFrequency:
+      return state.set('frequency', action.payload);
+    case ActionType.setProject:
+      return state.set('projectID', action.payload);
+    case ActionType.setComments:
+      return state.set('comments', action.payload);
+  }
 }
 
 interface StateProps {
@@ -53,6 +77,7 @@ const Amount = ({
       <div className='btn-group'>
         {amounts.map((amount) => (
           <button
+            key={amount}
             type='button'
             className={`btn btn-default${
               amount === state.get('amount') && !isCustom ? ' active' : ''
@@ -80,7 +105,7 @@ const Amount = ({
           <input
             type='number'
             value={state.get('amount')}
-            onInput={(e) =>
+            onChange={(e) =>
               dispatch({
                 type: ActionType.setAmount,
                 payload: parseInt(e.currentTarget.value),
@@ -133,7 +158,7 @@ const Frequency = ({ dispatch, state }: StateProps) => {
             className='email'
             type='email'
             value={state.get('email')}
-            onInput={(e) =>
+            onChange={(e) =>
               dispatch({
                 type: ActionType.setEmail,
                 payload: e.currentTarget.value,
@@ -147,54 +172,51 @@ const Frequency = ({ dispatch, state }: StateProps) => {
   );
 };
 
-type Project = number | null;
-
 interface ProjectsProps {
   projects: {
     id: number;
     name: string;
   }[];
-  selectedProject: Project;
 }
 
-const Projects = ({ projects, selectedProject = null }: ProjectsProps) => (
+const Projects = ({
+  state,
+  dispatch,
+  projects,
+}: ProjectsProps & StateProps) => (
   <>
     <h3>What project?</h3>
     <div className='row'>
-      <select className='form-control'>
-        {selectedProject === null ? (
-          <option value='null' selected>
-            All projects
+      <select
+        className='form-control'
+        value={(() => {
+          const id = state.get('projectID');
+          if (typeof id === 'number') {
+            return `${id}`;
+          } else {
+            return 'null';
+          }
+        })()}
+        onChange={(e) =>
+          dispatch({
+            type: ActionType.setProject,
+            payload:
+              e.currentTarget.value === 'null'
+                ? null
+                : parseInt(e.currentTarget.value),
+          })
+        }
+      >
+        <option value='null'>All projects</option>
+        {projects.map((project) => (
+          <option key={project.id} value={project.id}>
+            {project.name}
           </option>
-        ) : (
-          <option value='null'>All projects</option>
-        )}
-        {projects.map((project) =>
-          selectedProject === project.id ? (
-            <option value={project.id} selected>
-              {project.name}
-            </option>
-          ) : (
-            <option value={project.id}>{project.name}</option>
-          ),
-        )}
+        ))}
       </select>
     </div>
   </>
 );
-
-function reducer(state: RecordOf<State>, action: Action): RecordOf<State> {
-  switch (action.type) {
-    case ActionType.setAmount:
-      return state.set('amount', action.payload);
-    case ActionType.setEmail:
-      return state.set('email', action.payload);
-    case ActionType.setFrequency:
-      return state.set('frequency', action.payload);
-    case ActionType.setProject:
-      return state.set('project', action.payload);
-  }
-}
 
 export default (props: AmountProps & ProjectsProps) => {
   const [state, dispatch] = useReducer(reducer, StateFactory({}));
@@ -206,15 +228,38 @@ export default (props: AmountProps & ProjectsProps) => {
       <Frequency {...newProps} />
       <Projects {...newProps} />
 
-      <div className='row'>
-        <input
-          type='text'
-          className='comments'
-          placeholder='Any comments?'
-          maxLength={512}
-        />
-      </div>
-      <button className='checkout' type='submit'>
+      <input
+        value={state.get('comments')}
+        type='text'
+        className='comments'
+        placeholder='Any comments?'
+        maxLength={512}
+        onChange={(e) =>
+          dispatch({
+            type: ActionType.setComments,
+            payload: e.currentTarget.value,
+          })
+        }
+      />
+      <button
+        className='checkout'
+        type='submit'
+        onClick={async () => {
+          const response = await fetch('/support/checkout_session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              amount: state.get('amount') * 100,
+            }),
+          });
+          const sessionId = (await response.json()).session_id;
+          stripe.redirectToCheckout({
+            sessionId,
+          });
+        }}
+      >
         Sponsor
       </button>
     </div>

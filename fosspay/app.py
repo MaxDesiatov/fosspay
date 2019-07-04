@@ -18,12 +18,9 @@ from fosspay.blueprints.html import html
 from datetime import datetime, timedelta
 from fosspay.email import send_thank_you, send_new_donation
 
-
-app = Flask(
-    __name__,
-    static_folder=os.path.join(os.getcwd(), "support/static"),
-    static_url_path='/support/static'
-)
+app = Flask(__name__,
+            static_folder=os.path.join(os.getcwd(), "support/static"),
+            static_url_path='/support/static')
 app.secret_key = _cfg("secret-key")
 app.jinja_env.cache = None
 init_db()
@@ -61,6 +58,7 @@ except:
     pass
 
 if not app.debug:
+
     @app.errorhandler(500)
     def handle_500(e):
         # shit
@@ -101,6 +99,24 @@ def inject():
     }
 
 
+@app.route('/support/checkout_session', methods=['POST'])
+def checkout_session():
+    data = json.loads(request.data)
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'name': 'Sponsorship fee',
+            'amount': data['amount'],
+            'currency': 'usd',
+            'quantity': 1,
+        }],
+        success_url='https://desiatov.com/',
+        cancel_url='https://example.com/cancel',
+    )
+
+    return json.dumps({'session_id': session.id, 'amount': data['amount']})
+
+
 @app.route('/support/confirm_payment', methods=['POST'])
 def make_payment_intent():
     data = json.loads(request.data)
@@ -116,12 +132,12 @@ def make_payment_intent():
             email = data["email"]
             payment_method_id = data['payment_method_id']
             amount = data["amount"]
-            type = data["type"]
+            payment_type = data["type"]
             comment = data["comment"]
             project_id = data["project"]
             source = data["source"]
             # Validate and rejigger the form inputs
-            if not email or not payment_method_id or not amount or not type:
+            if not email or not payment_method_id or not amount or not payment_type:
                 error = "Invalid request. "
                 if not email:
                     error += "No email."
@@ -129,7 +145,7 @@ def make_payment_intent():
                     error += "No payment_method_id."
                 if not amount:
                     error += "No amount."
-                if not type:
+                if not payment_type:
                     error += "No type."
                 return {"success": False, "error": error}, 400
             if project_id is None or project_id == "null":
@@ -139,10 +155,10 @@ def make_payment_intent():
                 project = Project.query.filter(
                     Project.id == project_id).first()
 
-            if type == "once":
-                type = DonationType.one_time
+            if payment_type == "once":
+                payment_type = DonationType.one_time
             else:
-                type = DonationType.monthly
+                payment_type = DonationType.monthly
 
             amount = int(amount)
 
@@ -152,17 +168,18 @@ def make_payment_intent():
             user = User.query.filter(User.email == email).first()
             if not user:
                 new_account = True
-                user = User(email, binascii.b2a_hex(
-                    os.urandom(20)).decode("utf-8"))
+                user = User(email,
+                            binascii.b2a_hex(os.urandom(20)).decode("utf-8"))
                 user.password_reset = binascii.b2a_hex(
                     os.urandom(20)).decode("utf-8")
-                user.password_reset_expires = datetime.now() + timedelta(days=1)
-                customer = stripe.Customer.create(
-                    email=user.email, source=source["id"])
+                user.password_reset_expires = datetime.now() + timedelta(
+                    days=1)
+                customer = stripe.Customer.create(email=user.email,
+                                                  source=source["id"])
 
                 # Attach payment method to the customer:
-                stripe.PaymentMethod.attach(
-                    payment_method_id, customer=customer.id)
+                stripe.PaymentMethod.attach(payment_method_id,
+                                            customer=customer.id)
 
                 user.stripe_customer = customer.id
 
@@ -175,16 +192,6 @@ def make_payment_intent():
                     "password_reset": user.password_reset
                 }
             else:
-                # Update the old user payment source
-                source = stripe.Customer.create_source(
-                    user.stripe_customer,
-                    source=source["id"]
-                )
-                stripe.Customer.modify(
-                    user.stripe_customer,
-                    default_source=source["id"]
-                )
-
                 # Save user data to pass it to the client
                 userData = {"new_account": new_account}
 
@@ -202,21 +209,23 @@ def make_payment_intent():
                 )
 
                 # Add new donation to the database
-                donation = Donation(user, type, amount, project, comment)
+                donation = Donation(user, payment_type, amount, project,
+                                    comment)
                 db.add(donation)
             except stripe.error.CardError as e:
                 db.rollback()
                 db.close()
                 return {
-                    "success": False, "error": "Your card was declined."
+                    "success": False,
+                    "error": "Your card was declined."
                 }, 400
             except Exception as e:
-                error = "Invalid request. "+e.user_message
+                error = "Invalid request. " + e.user_message
                 return {"success": False, "error": error}, 400
 
             db.commit()
 
-            send_thank_you(user, amount, type == DonationType.monthly)
+            send_thank_you(user, amount, payment_type == DonationType.monthly)
             send_new_donation(user, donation)
         elif 'payment_intent_id' in data:
             # Fulfill the secure payment
@@ -224,7 +233,7 @@ def make_payment_intent():
 
     except stripe.error.CardError as e:
         # Display error on client
-        error = "Invalid request. "+e.user_message
+        error = "Invalid request. " + e.user_message
         return {"success": False, "error": error}, 400
 
     return generate_payment_response(intent, userData)
