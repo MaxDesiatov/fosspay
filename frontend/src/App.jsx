@@ -43,9 +43,9 @@ function App() {
         <Navigation />
         <Summary />
         <Form
-          amounts={[5, 10]}
+          amounts={[5, 10, 20, 50]}
           currency={{ symbol: '$' }}
-          projects={[{name: 'desiatov.com blog'}]}
+          projects={[{ name: 'desiatov.com blog' }]}
         />
       </header>
     </div>

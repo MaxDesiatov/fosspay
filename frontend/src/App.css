@@ -1,6 +1,10 @@
 :root {
-  --size: 1.75rem;
+  --rhythm: 1.75rem;
   --blueish: #007acc;
+  --blueish-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),
+    0 0 8px rgba(102, 175, 233, 0.6);
+  --radius: 4px;
+  --input-border: 1px solid #ccc;
 }
 
 .nav-link.inactive {
@@ -21,6 +25,12 @@
 .btn-group {
   display: flex;
   justify-content: center;
+}
+
+.form {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 
 .form button {
@@ -45,26 +55,44 @@
   -ms-user-select: none;
   user-select: none;
   background-image: none;
-  border: 1px solid transparent;
-  border-color: #ccc;
+  border: var(--input-border);
   flex-basis: 20%;
   background-color: #fff;
 }
 
+.btn:hover {
+  color: #fff;
+  background-color: #55baff;
+  border-color: #55baff;
+}
+
 .btn:first-child {
-  border-top-left-radius: 4px;
-  border-bottom-left-radius: 4px;
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
 }
 
 .btn:last-child {
-  border-top-right-radius: 4px;
-  border-bottom-right-radius: 4px;
+  border-top-right-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
 }
 
 .custom-amount {
-  margin-top: var(--size);
-  margin-left: calc(var(--size) * 0.25);
-  width: calc(var(--size) * 3);
+  margin-top: var(--rhythm);
+  margin-left: calc(var(--rhythm) * 0.1);
+  padding-left: calc(var(--rhythm) * 0.2);
+  width: calc(var(--rhythm) * 3.25);
+  border-radius: var(--radius);
+  border: var(--input-border);
+}
+
+.email-explainer {
+  margin-top: calc(var(--rhythm) * 0.75);
+  width: 80%;
+}
+
+input.email {
+  margin-top: calc(var(--rhythm) * 0.5);
+  padding-left: calc(var(--rhythm) * 0.2);
 }
 
 button.checkout {
@@ -73,13 +101,41 @@ button.checkout {
   background: var(--blueish);
   color: #fff;
   box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
+  border-radius: var(--radius);
   border: 0;
   font-weight: 700;
-  width: calc(var(--size) * 15);
+  width: calc(var(--rhythm) * 15);
   height: 40px;
   outline: none;
   transition: all 0.15s ease;
+}
+
+.form select {
+  display: block;
+  width: calc(var(--rhythm) * 15);
+  height: calc(var(--rhythm) * 1.25);
+  -moz-appearance: menulist;
+  -webkit-appearance: menulist;
+  border: var(--input-border);
+  border-radius: var(--radius);
+  margin-bottom: calc(var(--rhythm) * 0.5);
+  padding-left: calc(var(--rhythm) * 0.1);
+}
+
+.form select:focus {
+  border-color: #66afe9;
+  outline: 0;
+  box-shadow: var(--blueish-shadow);
+}
+
+.form .comments {
+  width: calc(var(--rhythm) * 15);
+  height: calc(var(--rhythm) * 1.25);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  background-color: #fff;
+  border-radius: var(--radius);
+  border: var(--input-border);
+  padding-left: calc(var(--rhythm) * 0.25);
 }
 
 .btn-default.active,
@@ -87,8 +143,4 @@ button.checkout {
   color: #fff;
   background-color: var(--blueish);
   border-color: var(--blueish);
-}
-
-.hidden {
-  display: none;
 }
