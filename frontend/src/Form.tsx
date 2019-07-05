@@ -159,6 +159,47 @@ const Amount = ({
   );
 };
 
+const validEmail = (email: string) => email.match(/^.+@\w+(\.\w+)+$/) !== null;
+
+const Email = ({ dispatch, state }: StateProps) => (
+  <>
+    <div className='email-explainer'>
+      Your email is required for monthly sponsorship so that you can cancel your
+      subscription later if you'd like to:
+    </div>
+    <input
+      className={`email${
+        state.get('validationMessages').contains('email') ? ' invalid' : ''
+      }`}
+      type='email'
+      required
+      value={state.get('email')}
+      onChange={(e) => {
+        dispatch({
+          type: ActionType.setEmail,
+          payload: e.currentTarget.value,
+        });
+
+        if (validEmail(e.currentTarget.value)) {
+          dispatch({
+            type: ActionType.removeValidationMessage,
+            payload: 'email',
+          });
+        }
+      }}
+      onBlur={(e) => {
+        dispatch({
+          type: e.currentTarget.value
+            ? ActionType.removeValidationMessage
+            : ActionType.addValidationMessage,
+          payload: 'email',
+        });
+      }}
+      placeholder='Email'
+    />
+  </>
+);
+
 const Frequency = ({ dispatch, state }: StateProps) => {
   return (
     <>
@@ -191,51 +232,12 @@ const Frequency = ({ dispatch, state }: StateProps) => {
           Monthly
         </button>
       </div>
-      {state.get('isSubscription') ? (
-        <>
-          <div className='email-explainer'>
-            Your email is required for monthly sponsorship so that you can
-            cancel your subscription later if you'd like to:
-          </div>
-          <input
-            className={`email${
-              state.get('validationMessages').contains('email')
-                ? ' invalid'
-                : ''
-            }`}
-            type='email'
-            required
-            value={state.get('email')}
-            onChange={(e) => {
-              dispatch({
-                type: ActionType.setEmail,
-                payload: e.currentTarget.value,
-              });
-
-              if (e.currentTarget.value) {
-                dispatch({
-                  type: ActionType.removeValidationMessage,
-                  payload: 'email',
-                });
-              }
-            }}
-            onBlur={(e) => {
-              dispatch({
-                type: e.currentTarget.value
-                  ? ActionType.removeValidationMessage
-                  : ActionType.addValidationMessage,
-                payload: 'email',
-              });
-            }}
-            placeholder='Email'
-          />
-        </>
-      ) : null}
+      {state.get('isSubscription') ? <Email {...{ dispatch, state }} /> : null}
     </>
   );
 };
 
-interface ProjectsProps {
+export interface ProjectsProps {
   projects: {
     id: number;
     name: string;
@@ -348,7 +350,7 @@ const Submit = ({ dispatch, state }: StateProps) => {
       type='submit'
       onClick={async () => {
         let isValid = true;
-        if (!state.get('email')) {
+        if (!validEmail(state.get('email'))) {
           dispatch({
             type: ActionType.addValidationMessage,
             payload: 'email',

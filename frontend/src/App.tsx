@@ -3,9 +3,11 @@ import './App.css';
 
 import { rhythm, scale } from './typography';
 import Bio from './Bio';
-import Form from './Form';
+import { ProjectsProps, default as Form } from './Form';
 import Navigation from './Navigation';
 import Summary from './Summary';
+
+declare var initialState: ProjectsProps;
 
 function App() {
   return (
@@ -45,7 +47,7 @@ function App() {
         <Form
           amounts={[5, 10, 20, 50]}
           currency={{ symbol: '$' }}
-          projects={[{ id: 1, name: 'desiatov.com blog' }]}
+          projects={initialState.projects}
         />
       </header>
     </div>

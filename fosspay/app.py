@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, g, Response, redirect, url_for
 from flask_login import LoginManager, current_user
 from jinja2 import FileSystemLoader, ChoiceLoader
+from sqlalchemy.ext.declarative import DeclarativeMeta
 
 import sys
 import os
@@ -99,6 +100,36 @@ def inject():
     }
 
 
+class AlchemyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj.__class__, DeclarativeMeta):
+            # an SQLAlchemy class
+            fields = {}
+            for field in [
+                    x for x in dir(obj)
+                    if not x.startswith('_') and x != 'metadata'
+            ]:
+                data = obj.__getattribute__(field)
+                try:
+                    json.dumps(
+                        data
+                    )  # this will fail on non-encodable values, like other classes
+                    fields[field] = data
+                except TypeError:
+                    fields[field] = None
+            # a json-encodable dict
+            return fields
+
+        return json.JSONEncoder.default(self, obj)
+
+
+@app.route('/support/initial_state', methods=['GET'])
+def initial_state():
+    projects = Project.query.all()
+    return f'window.initialState = \
+        {json.dumps({"projects": projects}, cls=AlchemyEncoder)};'
+
+
 @app.route('/support/checkout_session', methods=['POST'])
 def checkout_session():
     data = json.loads(request.data)
@@ -110,8 +141,8 @@ def checkout_session():
             'currency': 'usd',
             'quantity': 1,
         }],
-        success_url='https://desiatov.com/',
-        cancel_url='https://example.com/cancel',
+        success_url=_cfg("protocol") + "://" + _cfg("domain"),
+        cancel_url=_cfg("protocol") + "://" + _cfg("domain"),
     )
 
     return json.dumps({'session_id': session.id, 'amount': data['amount']})
