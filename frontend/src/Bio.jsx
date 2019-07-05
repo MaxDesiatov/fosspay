@@ -16,14 +16,14 @@ const profilePicSize = rhythm(3);
 const ProfilePic = () => (
   <img
     src={profilePic}
-    alt="Max Desiatov"
+    alt='Max Desiatov'
     style={{
       float: 'left',
       marginRight: rhythm(0.5),
       marginBottom: rhythm(0.25),
-      width: profilePicSize,
       borderRadius: profilePicSize,
       height: profilePicSize,
+      width: profilePicSize,
     }}
   />
 );

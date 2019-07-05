@@ -2,7 +2,6 @@ import React from 'react';
 import {
   faTwitterSquare,
   faGithubSquare,
-  faLinkedin,
   faMastodon,
 } from '@fortawesome/free-brands-svg-icons';
 import { faRssSquare } from '@fortawesome/free-solid-svg-icons';
@@ -58,7 +57,7 @@ const NavItem = (props) => (
   />
 );
 
-const NavLink = ({className, ...rest}) => (
+const NavLink = ({ className, ...rest }) => (
   <A className={`${className} nav-link`} {...rest} />
 );
 
@@ -87,21 +86,22 @@ export default () => (
       <Icon
         title='Twitter'
         href='https://twitter.com/maxdesiatov'
-        icon={faTwitterSquare} size='2x' />
+        icon={faTwitterSquare}
+        size='2x'
+      />
       <Icon
         title='GitHub'
         href='https://github.com/maxdesiatov'
-        icon={faGithubSquare} size='2x' />
-      <Icon
-        className='inactive'
-        title='LinkedIn'
-        href='https://www.linkedin.com/in/maxdesiatov/'
-        icon={faLinkedin} size='2x' />
+        icon={faGithubSquare}
+        size='2x'
+      />
       <Icon
         className='inactive'
         title='Mastodon'
         href='https://mastodon.social/@maxd'
-        icon={faMastodon} size='2x' />
+        icon={faMastodon}
+        size='2x'
+      />
     </Follow>
   </Container>
 );
