@@ -46,6 +46,7 @@ enum ActionType {
   setProject = 'setProject',
   addValidationMessage = 'pushValidationMessage',
   removeValidationMessage = 'removeValidationMessage',
+  resetValidationMessages = 'resetValidationMessages',
 }
 
 function reducer(state: RecordOf<State>, action: Action): RecordOf<State> {
@@ -72,6 +73,8 @@ function reducer(state: RecordOf<State>, action: Action): RecordOf<State> {
       const messages = state.get('validationMessages');
       return state.set('validationMessages', messages.remove(action.payload));
     }
+    case ActionType.resetValidationMessages:
+      return state.set('validationMessages', Set());
   }
 }
 
@@ -209,8 +212,8 @@ const Frequency = ({ dispatch, state }: StateProps) => {
           onClick={() => {
             dispatch({ type: ActionType.setIsSubscription, payload: false });
             dispatch({
-              type: ActionType.removeValidationMessage,
-              payload: 'email',
+              type: ActionType.resetValidationMessages,
+              payload: null,
             });
           }}
           type='button'
@@ -350,7 +353,8 @@ const Submit = ({ dispatch, state }: StateProps) => {
       type='submit'
       onClick={async () => {
         let isValid = true;
-        if (!validEmail(state.get('email'))) {
+        const isSubscription = state.get('isSubscription');
+        if (isSubscription && !validEmail(state.get('email'))) {
           dispatch({
             type: ActionType.addValidationMessage,
             payload: 'email',
@@ -358,7 +362,7 @@ const Submit = ({ dispatch, state }: StateProps) => {
           isValid = false;
         }
 
-        if (!state.get('isPrivacyPolicyAccepted')) {
+        if (isSubscription && !state.get('isPrivacyPolicyAccepted')) {
           dispatch({
             type: ActionType.addValidationMessage,
             payload: 'privacy',
@@ -370,7 +374,7 @@ const Submit = ({ dispatch, state }: StateProps) => {
         }
 
         setIsProcessing(true);
-        const response = await fetch('/support/checkout_session', {
+        const response = await fetch('/sponsor/checkout_session', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

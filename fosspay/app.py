@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, g, Response, redirect, url_for
+from flask import Flask, render_template, request, g, Response, redirect, url_for, jsonify
 from flask_login import LoginManager, current_user
 from jinja2 import FileSystemLoader, ChoiceLoader
 from sqlalchemy.ext.declarative import DeclarativeMeta
@@ -8,7 +8,6 @@ import os
 import locale
 import stripe
 import binascii
-from flask import Flask, render_template, jsonify, request
 
 from fosspay.config import _cfg, _cfgi
 from fosspay.database import db, init_db
@@ -20,8 +19,8 @@ from datetime import datetime, timedelta
 from fosspay.email import send_thank_you, send_new_donation
 
 app = Flask(__name__,
-            static_folder=os.path.join(os.getcwd(), "support/static"),
-            static_url_path='/support/static')
+            static_folder=os.path.join(os.getcwd(), "frontend/build"),
+            static_url_path='/sponsor')
 app.secret_key = _cfg("secret-key")
 app.jinja_env.cache = None
 init_db()
@@ -43,7 +42,7 @@ def load_user(email):
 
 login_manager.anonymous_user = lambda: None
 
-app.register_blueprint(html, url_prefix='/support')
+app.register_blueprint(html, url_prefix='/sponsor')
 
 
 @app.after_request
@@ -123,14 +122,15 @@ class AlchemyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-@app.route('/support/initial_state', methods=['GET'])
+@app.route('/sponsor/initial_state', methods=['GET'])
 def initial_state():
     projects = Project.query.all()
-    return f'window.initialState = \
-        {json.dumps({"projects": projects}, cls=AlchemyEncoder)};'
+    return Response(f'window.initialState = \
+        {json.dumps({"projects": projects}, cls=AlchemyEncoder)};',
+                    mimetype='application/javascript')
 
 
-@app.route('/support/checkout_session', methods=['POST'])
+@app.route('/sponsor/checkout_session', methods=['POST'])
 def checkout_session():
     data = json.loads(request.data)
     session = stripe.checkout.Session.create(
@@ -145,156 +145,4 @@ def checkout_session():
         cancel_url=_cfg("protocol") + "://" + _cfg("domain"),
     )
 
-    return json.dumps({'session_id': session.id, 'amount': data['amount']})
-
-
-@app.route('/support/confirm_payment', methods=['POST'])
-def make_payment_intent():
-    data = json.loads(request.data)
-
-    intent = None
-    userData = None
-
-    if 'userData' in data:
-        userData = data['userData']
-
-    try:
-        if 'payment_method_id' in data:
-            email = data["email"]
-            payment_method_id = data['payment_method_id']
-            amount = data["amount"]
-            payment_type = data["type"]
-            comment = data["comment"]
-            project_id = data["project"]
-            source = data["source"]
-            # Validate and rejigger the form inputs
-            if not email or not payment_method_id or not amount or not payment_type:
-                error = "Invalid request. "
-                if not email:
-                    error += "No email."
-                if not payment_method_id:
-                    error += "No payment_method_id."
-                if not amount:
-                    error += "No amount."
-                if not payment_type:
-                    error += "No type."
-                return {"success": False, "error": error}, 400
-            if project_id is None or project_id == "null":
-                project = None
-            else:
-                project_id = int(project_id)
-                project = Project.query.filter(
-                    Project.id == project_id).first()
-
-            if payment_type == "once":
-                payment_type = DonationType.one_time
-            else:
-                payment_type = DonationType.monthly
-
-            amount = int(amount)
-
-            # Create new user if not exist, or update the old user payment
-            # source if the user already in the database
-            new_account = False
-            user = User.query.filter(User.email == email).first()
-            if not user:
-                new_account = True
-                user = User(email,
-                            binascii.b2a_hex(os.urandom(20)).decode("utf-8"))
-                user.password_reset = binascii.b2a_hex(
-                    os.urandom(20)).decode("utf-8")
-                user.password_reset_expires = datetime.now() + timedelta(
-                    days=1)
-                customer = stripe.Customer.create(email=user.email,
-                                                  source=source["id"])
-
-                # Attach payment method to the customer:
-                stripe.PaymentMethod.attach(payment_method_id,
-                                            customer=customer.id)
-
-                user.stripe_customer = customer.id
-
-                # Add user to the database
-                db.add(user)
-
-                # Save user data to pass it to the client
-                userData = {
-                    "new_account": new_account,
-                    "password_reset": user.password_reset
-                }
-            else:
-                # Save user data to pass it to the client
-                userData = {"new_account": new_account}
-
-            try:
-                # Create the PaymentIntent
-                amount = data['amount']
-                intent = stripe.PaymentIntent.create(
-                    payment_method=data['payment_method_id'],
-                    amount=amount,
-                    currency=_cfg("currency"),
-                    confirmation_method='manual',
-                    confirm=True,
-                    save_payment_method=True,
-                    customer=user.stripe_customer,
-                )
-
-                # Add new donation to the database
-                donation = Donation(user, payment_type, amount, project,
-                                    comment)
-                db.add(donation)
-            except stripe.error.CardError as e:
-                db.rollback()
-                db.close()
-                return {
-                    "success": False,
-                    "error": "Your card was declined."
-                }, 400
-            except Exception as e:
-                error = "Invalid request. " + e.user_message
-                return {"success": False, "error": error}, 400
-
-            db.commit()
-
-            send_thank_you(user, amount, payment_type == DonationType.monthly)
-            send_new_donation(user, donation)
-        elif 'payment_intent_id' in data:
-            # Fulfill the secure payment
-            intent = stripe.PaymentIntent.confirm(data['payment_intent_id'])
-
-    except stripe.error.CardError as e:
-        # Display error on client
-        error = "Invalid request. " + e.user_message
-        return {"success": False, "error": error}, 400
-
-    return generate_payment_response(intent, userData)
-
-
-def generate_payment_response(intent, userData):
-    if intent.status == 'requires_action' and intent.next_action.type == 'use_stripe_sdk':
-        # Tell the client to handle the action
-        return json.dumps({
-            'requires_action': True,
-            'payment_intent_client_secret': intent.client_secret,
-            'userData': userData
-        }), 200
-    elif intent.status == 'succeeded':
-        # The payment didn't need any additional actions and completed
-        # Handle the post-payment fulfillment
-        return json.dumps({
-            'success': True,
-            'intent': intent,
-            'userData': userData
-        }), 200
-    else:
-        # Invalid status
-        return json.dumps({
-            'success': False,
-            'error': 'Invalid PaymentIntent status'
-        }), 400
-
-
-@app.route('/support/confirm_payment/<string:id>/status', methods=['GET'])
-def retrieve_payment_intent_status(id):
-    payment_intent = stripe.PaymentIntent.retrieve(id)
-    return jsonify({'paymentIntent': {'status': payment_intent["status"]}})
+    return jsonify({'session_id': session.id, 'amount': data['amount']})

@@ -76,7 +76,7 @@ export default () => (
         </NavLink>
       </NavItem>
       <NavItem>
-        <NavLink className='active' href='/support'>
+        <NavLink className='active' href='/sponsor'>
           Support My Work
         </NavLink>
       </NavItem>
