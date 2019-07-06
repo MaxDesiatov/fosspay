@@ -177,3 +177,8 @@ input.email {
   background-color: var(--blueish);
   border-color: var(--blueish);
 }
+
+footer {
+  margin-top: calc(var(--rhythm) * 2);
+  text-align: center;
+}

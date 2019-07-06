@@ -26,6 +26,7 @@ function App() {
               ...scale(1.45),
               marginBottom: rhythm(1.5),
               marginTop: 0,
+              textAlign: 'center',
             }}
           >
             <a
@@ -43,13 +44,19 @@ function App() {
 
         <Bio />
         <Navigation />
-        <Summary />
-        <Form
-          amounts={[5, 10, 20, 50]}
-          currency={{ symbol: '$' }}
-          projects={initialState.projects}
-        />
       </header>
+
+      <Summary />
+      <Form
+        amounts={[5, 10, 20, 50]}
+        currency={{ symbol: '$' }}
+        projects={initialState.projects}
+      />
+      <footer>
+        <small>
+          Powered by <a href='https://github.com/SirCmpwn/fosspay'>fosspay</a>.
+        </small>
+      </footer>
     </div>
   );
 }

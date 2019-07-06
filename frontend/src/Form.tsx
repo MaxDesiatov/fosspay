@@ -333,7 +333,15 @@ const Checkboxes = ({ dispatch, state }: StateProps) =>
         </div>
       </label>
       <label className='checkbox-label'>
-        <input type='checkbox' />
+        <input
+          type='checkbox'
+          onChange={(e) =>
+            dispatch({
+              type: ActionType.setIsPublic,
+              payload: e.currentTarget.checked,
+            })
+          }
+        />
         <div>
           My sponsorship can be made public.
           <br />
@@ -381,6 +389,7 @@ const Submit = ({ dispatch, state }: StateProps) => {
           },
           body: JSON.stringify({
             amount: state.get('amount') * 100,
+            email: state.get('email'),
             isSubscription: state.get('isSubscription'),
             isPublic: state.get('isPublic'),
           }),

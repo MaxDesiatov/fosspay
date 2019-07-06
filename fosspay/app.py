@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, g, Response, redirect, url_fo
 from flask_login import LoginManager, current_user
 from jinja2 import FileSystemLoader, ChoiceLoader
 from sqlalchemy.ext.declarative import DeclarativeMeta
+from numbers import Number
 
 import sys
 import os
@@ -122,6 +123,11 @@ class AlchemyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
+@app.route("/sponsor/")
+def index():
+    return app.send_static_file('index.html')
+
+
 @app.route('/sponsor/initial_state', methods=['GET'])
 def initial_state():
     projects = Project.query.all()
@@ -133,16 +139,55 @@ def initial_state():
 @app.route('/sponsor/checkout_session', methods=['POST'])
 def checkout_session():
     data = json.loads(request.data)
-    session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=[{
-            'name': 'Sponsorship fee',
-            'amount': data['amount'],
+
+    args = {
+        'payment_method_types': ['card'],
+        'success_url': _cfg("protocol") + "://" + _cfg("domain"),
+        'cancel_url': _cfg("protocol") + "://" + _cfg("domain"),
+    }
+
+    email = 'email' in data and data['email']
+    if email:
+        is_public = 'isPublic' in data and data['isPublic']
+        args['customer_email'] = email
+        user = User.query.filter(User.email == email).first()
+        if not user:
+            user = User(data['email'])
+            user.is_public = is_public
+            db.add(user)
+        user.is_public = is_public
+        db.commit()
+
+    is_subscription = 'isSubscription' in data and data['isSubscription']
+    amount = data['amount']
+
+    if not isinstance(amount, Number):
+        raise ValueError(f'invalid checkout amount specified: {amount}')
+
+    if is_subscription:
+        whole_amount = int(amount / 100)
+        try:
+            plan = stripe.Plan.retrieve(f'desiatov_mo_sp_{whole_amount}_usd')
+        except stripe.error.InvalidRequestError:
+            plan = stripe.Plan.create(amount=amount,
+                                      interval="month",
+                                      product=_cfg('product_id'),
+                                      currency="usd",
+                                      nickname=f'Monthly {whole_amount} USD',
+                                      id=f"desiatov_mo_sp_{whole_amount}_usd")
+        args['subscription_data'] = {
+            'items': [{
+                'plan': plan.id,
+            }],
+        }
+    else:
+        args['line_items'] = [{
+            'name': 'desiatov.com sponsorship fee',
+            'amount': amount,
             'currency': 'usd',
             'quantity': 1,
-        }],
-        success_url=_cfg("protocol") + "://" + _cfg("domain"),
-        cancel_url=_cfg("protocol") + "://" + _cfg("domain"),
-    )
+        }]
+
+    session = stripe.checkout.Session.create(**args)
 
     return jsonify({'session_id': session.id, 'amount': data['amount']})

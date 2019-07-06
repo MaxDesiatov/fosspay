@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, abort, request, redirect, session, url_for, send_file, Response
+from flask import Blueprint, render_template, abort, request, redirect, session, url_for, Response
 from flask_login import current_user, login_user, logout_user
 from datetime import datetime, timedelta
 from fosspay.objects import *
@@ -32,11 +32,6 @@ def get_config():
         'currency': _cfg("currency"),
         'paymentMethods': ['card'],
     }
-
-
-@html.route("/")
-def index():
-    return redirect(absolute_link("index.html"))
 
 @html.route("/setup", methods=["POST"])
 def setup():
