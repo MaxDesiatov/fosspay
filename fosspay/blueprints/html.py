@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, abort, request, redirect, session, url_for, send_file, Response
+from flask import Blueprint, render_template, abort, request, redirect, session, url_for, Response
 from flask_login import current_user, login_user, logout_user
 from datetime import datetime, timedelta
 from fosspay.objects import *
@@ -32,68 +32,6 @@ def get_config():
         'currency': _cfg("currency"),
         'paymentMethods': ['card'],
     }
-
-
-@html.route("/")
-def index():
-    if User.query.count() == 0:
-        load_config()
-        return render_template("setup.html")
-    projects = sorted(Project.query.all(), key=lambda p: p.name)
-    avatar = "//www.gravatar.com/avatar/" + \
-        hashlib.md5(_cfg("your-email").encode("utf-8")).hexdigest()
-    selected_project = request.args.get("project")
-    if selected_project:
-        try:
-            selected_project = int(selected_project)
-        except:
-            selected_project = None
-    active_recurring = (Donation.query
-                        .filter(Donation.type == DonationType.monthly)
-                        .filter(Donation.active == True)
-                        .filter(Donation.hidden == False))
-    recurring_count = active_recurring.count()
-    recurring_sum = sum([d.amount for d in active_recurring])
-
-    access_token = _cfg("patreon-access-token")
-    campaign = _cfg("patreon-campaign")
-    if access_token and campaign:
-        try:
-            import patreon
-            client = patreon.API(access_token)
-            campaign = client.fetch_campaign()
-            attrs = campaign.json_data["data"][0]["attributes"]
-            patreon_count = attrs["patron_count"]
-            patreon_sum = attrs["pledge_sum"]
-        except:
-            patreon_count = 0
-            patreon_sum = 0
-    else:
-        patreon_count = 0
-        patreon_sum = 0
-
-    liberapay = _cfg("liberapay-campaign")
-    if liberapay:
-        lp = (requests
-              .get("https://liberapay.com/{}/public.json".format(liberapay))
-              ).json()
-        lp_count = lp['npatrons']
-        lp_sum = int(float(lp['receiving']['amount']) * 100)
-        # Convert from weekly to monthly
-        lp_sum = lp_sum * 52 // 12
-    else:
-        lp_count = 0
-        lp_sum = 0
-
-    return render_template("index.html", projects=projects,
-                           avatar=avatar, selected_project=selected_project,
-                           recurring_count=recurring_count,
-                           recurring_sum=recurring_sum,
-                           patreon_count=patreon_count,
-                           patreon_sum=patreon_sum,
-                           lp_count=lp_count,
-                           lp_sum=lp_sum, currency=currency, absolute_link=absolute_link(""))
-
 
 @html.route("/setup", methods=["POST"])
 def setup():

@@ -11,3 +11,6 @@ storage/
 pip-selfcheck.json
 .sass-cache/
 overrides/
+node_modules/
+.vscode/
+build/
