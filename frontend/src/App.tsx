@@ -3,7 +3,8 @@ import './App.css';
 
 import { rhythm, scale } from './typography';
 import Bio from './Bio';
-import { ProjectsProps, default as Form } from './Form';
+import Form from './Form';
+import { ProjectsProps } from './Form/Projects';
 import Navigation from './Navigation';
 import Summary from './Summary';
 
