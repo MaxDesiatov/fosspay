@@ -170,36 +170,39 @@ const Email = ({ dispatch, state }: StateProps) => (
       Your email is required for monthly sponsorship so that you can cancel your
       subscription later if you'd like to:
     </div>
-    <input
+    <div
       className={`email${
         state.get('validationMessages').contains('email') ? ' invalid' : ''
       }`}
-      type='email'
-      required
-      value={state.get('email')}
-      onChange={(e) => {
-        dispatch({
-          type: ActionType.setEmail,
-          payload: e.currentTarget.value,
-        });
-
-        if (validEmail(e.currentTarget.value)) {
+    >
+      <input
+        type='email'
+        required
+        value={state.get('email')}
+        onChange={(e) => {
           dispatch({
-            type: ActionType.removeValidationMessage,
+            type: ActionType.setEmail,
+            payload: e.currentTarget.value,
+          });
+
+          if (validEmail(e.currentTarget.value)) {
+            dispatch({
+              type: ActionType.removeValidationMessage,
+              payload: 'email',
+            });
+          }
+        }}
+        onBlur={(e) => {
+          dispatch({
+            type: e.currentTarget.value
+              ? ActionType.removeValidationMessage
+              : ActionType.addValidationMessage,
             payload: 'email',
           });
-        }
-      }}
-      onBlur={(e) => {
-        dispatch({
-          type: e.currentTarget.value
-            ? ActionType.removeValidationMessage
-            : ActionType.addValidationMessage,
-          payload: 'email',
-        });
-      }}
-      placeholder='Email'
-    />
+        }}
+        placeholder='Email'
+      />
+    </div>
   </>
 );
 
@@ -310,38 +313,43 @@ const Checkboxes = ({ dispatch, state }: StateProps) =>
           state.get('validationMessages').contains('privacy') ? ' invalid' : ''
         }`}
       >
-        <input
-          type='checkbox'
-          onChange={(e) => {
-            dispatch({
-              type: e.currentTarget.checked
-                ? ActionType.removeValidationMessage
-                : ActionType.addValidationMessage,
-              payload: 'privacy',
-            });
-            dispatch({
-              type: ActionType.setIsPrivacyPolicyAccepted,
-              payload: e.currentTarget.checked,
-            });
-          }}
-        />
+        <div>
+          <input
+            type='checkbox'
+            onChange={(e) => {
+              dispatch({
+                type: e.currentTarget.checked
+                  ? ActionType.removeValidationMessage
+                  : ActionType.addValidationMessage,
+                payload: 'privacy',
+              });
+              dispatch({
+                type: ActionType.setIsPrivacyPolicyAccepted,
+                payload: e.currentTarget.checked,
+              });
+            }}
+          />
+        </div>
         <div>
           I confirm that my email can be recorded and cookies can be used so
-          that I can manage my subscription.{' '}
-          <a href='/privacy'>Privacy Policy</a> explains this in details. <br />
+          that I can manage my subscription. The subscription can be cancelled
+          at any time. <a href='/privacy'>Privacy Policy</a> explains this in
+          details. <br />
           <small>(required for monthly sponsorship)</small>
         </div>
       </label>
       <label className='checkbox-label'>
-        <input
-          type='checkbox'
-          onChange={(e) =>
-            dispatch({
-              type: ActionType.setIsPublic,
-              payload: e.currentTarget.checked,
-            })
-          }
-        />
+        <div>
+          <input
+            type='checkbox'
+            onChange={(e) =>
+              dispatch({
+                type: ActionType.setIsPublic,
+                payload: e.currentTarget.checked,
+              })
+            }
+          />
+        </div>
         <div>
           My sponsorship can be made public.
           <br />

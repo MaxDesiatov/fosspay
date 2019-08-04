@@ -93,8 +93,11 @@
   text-align: center;
 }
 
-input.email {
+.email {
   margin-top: calc(var(--rhythm) * 0.5);
+}
+
+.email input {
   padding-left: calc(var(--rhythm) * 0.2);
 }
 
@@ -110,7 +113,7 @@ input.email {
   user-select: none;
 }
 
-.checkbox-label div {
+.checkbox-label div:last-child {
   margin-left: calc(var(--rhythm) * 0.25);
 }
 
