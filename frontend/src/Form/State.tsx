@@ -1,5 +1,5 @@
 import { Record, RecordOf, Set } from 'immutable';
-import { Dispatch, useState, useReducer } from 'react';
+import { Dispatch, useReducer } from 'react';
 
 type ValidationMessage = 'amount' | 'email' | 'privacy';
 
