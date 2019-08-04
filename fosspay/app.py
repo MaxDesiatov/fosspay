@@ -131,9 +131,9 @@ def index():
 @app.route('/sponsor/initial_state', methods=['GET'])
 def initial_state():
     projects = Project.query.all()
-    return Response(f'window.initialState = \
-        {json.dumps({"projects": projects}, cls=AlchemyEncoder)};',
-                    mimetype='application/javascript')
+    return Response(
+        f'window.initialState = {json.dumps({"projects": projects}, cls=AlchemyEncoder)};',
+        mimetype='application/javascript')
 
 
 @app.route('/sponsor/checkout_session', methods=['POST'])
@@ -149,14 +149,17 @@ def checkout_session():
     email = 'email' in data and data['email']
     if email:
         is_public = 'isPublic' in data and data['isPublic']
-        args['customer_email'] = email
+        email_updates = 'emailUpdates' in data and data['emailUpdates']
         user = User.query.filter(User.email == email).first()
         if not user:
-            user = User(data['email'])
+            user = User(email)
             user.is_public = is_public
+            user.email_updates = email_updates
+            user.stripe_customer = stripe.Customer.create(email=email).id
             db.add(user)
         user.is_public = is_public
         db.commit()
+        args['customer'] = user.stripe_customer
 
     is_subscription = 'isSubscription' in data and data['isSubscription']
     amount = data['amount']
@@ -190,4 +193,4 @@ def checkout_session():
 
     session = stripe.checkout.Session.create(**args)
 
-    return jsonify({'session_id': session.id, 'amount': data['amount']})
+    return jsonify({'sessionId': session.id, 'amount': data['amount']})
