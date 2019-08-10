@@ -18,7 +18,7 @@ export const Amount = ({
   return (
     <>
       <h3>How much?</h3>
-      <div className='btn-group' role='group'>
+      <div className='btn-group amount' role='group'>
         {amounts.map((amount) => (
           <button
             key={amount}

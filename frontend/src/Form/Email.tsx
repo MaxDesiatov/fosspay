@@ -17,6 +17,8 @@ export const Email = ({ dispatch, state }: StateProps) => (
     >
       <input
         type='email'
+        name='email'
+        autoComplete='email'
         required
         value={state.get('email')}
         onChange={(e) => {
