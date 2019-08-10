@@ -12,7 +12,7 @@ const Container = (props) => (
   <div
     {...props}
     style={{
-      marginTop: rhythm(0.5),
+      marginTop: rhythm(0.25),
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-around',
@@ -48,10 +48,10 @@ const NavItem = (props) => (
   <h1
     {...props}
     style={{
-      marginLeft: rhythm(0.5),
-      marginRight: rhythm(0.5),
-      fontSize: rhythm(1),
-      marginTop: 0,
+      marginLeft: rhythm(0.1),
+      marginRight: rhythm(0.1),
+      fontSize: rhythm(0.95),
+      marginTop: rhythm(0.25),
       marginBottom: 0,
     }}
   />
