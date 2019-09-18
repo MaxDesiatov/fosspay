@@ -3,18 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.2.19",
-    "@fortawesome/free-brands-svg-icons": "^5.9.0",
-    "@fortawesome/free-solid-svg-icons": "^5.9.0",
+    "@fortawesome/fontawesome-svg-core": "^1.2.22",
+    "@fortawesome/free-brands-svg-icons": "^5.10.2",
+    "@fortawesome/free-solid-svg-icons": "^5.10.2",
     "@fortawesome/react-fontawesome": "^0.1.4",
-    "@types/react": "^16.9.1",
+    "@types/react": "^16.9.2",
     "immutable": "^4.0.0-rc.12",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
-    "react-scripts": "3.1.0",
+    "react-scripts": "3.1.1",
     "typeface-merriweather": "^0.0.72",
     "typeface-montserrat": "^0.0.75",
-    "typescript": "^3.5.2",
+    "typescript": "^3.6.3",
     "typography": "^0.16.19",
     "typography-theme-wordpress-2016": "^0.16.19",
     "whatwg-fetch": "^3.0.0"
@@ -44,6 +44,6 @@
   },
   "devDependencies": {
     "prettier": "^1.18.2",
-    "tslint": "^5.18.0"
+    "tslint": "^5.20.0"
   }
 }
