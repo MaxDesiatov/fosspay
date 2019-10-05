@@ -33,6 +33,7 @@ def get_config():
         'paymentMethods': ['card'],
     }
 
+
 @html.route("/setup", methods=["POST"])
 def setup():
     if not User.query.count() == 0:
@@ -57,30 +58,47 @@ def admin():
     unspecified = Donation.query.filter(Donation.project == None).all()
     donations = Donation.query.order_by(
         Donation.created.desc()).limit(50).all()
-    return render_template("admin.html",
-                           first=first,
-                           projects=projects,
-                           donations=donations,
-                           currency=currency,
-                           one_times=lambda p: sum(
-                               [d.amount for d in p.donations if d.type == DonationType.one_time]),
-                           recurring=lambda p: sum(
-                               [d.amount for d in p.donations if d.type == DonationType.monthly and d.active]),
-                           recurring_ever=lambda p: sum(
-                               [d.amount * d.payments for d in p.donations if d.type == DonationType.monthly]),
-                           unspecified_one_times=sum(
-                               [d.amount for d in unspecified if d.type == DonationType.one_time]),
-                           unspecified_recurring=sum(
-                               [d.amount for d in unspecified if d.type == DonationType.monthly and d.active]),
-                           unspecified_recurring_ever=sum(
-                               [d.amount * d.payments for d in unspecified if d.type == DonationType.monthly]),
-                           total_one_time=sum([d.amount for d in Donation.query.filter(
-                               Donation.type == DonationType.one_time)]),
-                           total_recurring=sum([d.amount for d in Donation.query.filter(
-                               Donation.type == DonationType.monthly, Donation.active == True)]),
-                           total_recurring_ever=sum(
-                               [d.amount * d.payments for d in Donation.query.filter(Donation.type == DonationType.monthly)]),
-                           )
+    return render_template(
+        "admin.html",
+        first=first,
+        projects=projects,
+        donations=donations,
+        currency=currency,
+        one_times=lambda p: sum([
+            d.amount for d in p.donations if d.type == DonationType.one_time
+        ]),
+        recurring=lambda p: sum([
+            d.amount for d in p.donations
+            if d.type == DonationType.monthly and d.active
+        ]),
+        recurring_ever=lambda p: sum([
+            d.amount * d.payments for d in p.donations
+            if d.type == DonationType.monthly
+        ]),
+        unspecified_one_times=sum([
+            d.amount for d in unspecified if d.type == DonationType.one_time
+        ]),
+        unspecified_recurring=sum([
+            d.amount for d in unspecified
+            if d.type == DonationType.monthly and d.active
+        ]),
+        unspecified_recurring_ever=sum([
+            d.amount * d.payments for d in unspecified
+            if d.type == DonationType.monthly
+        ]),
+        total_one_time=sum([
+            d.amount for d in Donation.query.filter(
+                Donation.type == DonationType.one_time)
+        ]),
+        total_recurring=sum([
+            d.amount for d in Donation.query.filter(
+                Donation.type == DonationType.monthly, Donation.active == True)
+        ]),
+        total_recurring_ever=sum([
+            d.amount * d.payments for d in Donation.query.filter(
+                Donation.type == DonationType.monthly)
+        ]),
+    )
 
 
 @html.route("/create-project", methods=["POST"])
@@ -106,9 +124,11 @@ def login():
     if not email or not password:
         return render_template("login.html", errors=True)
     user = User.query.filter(User.email == email).first()
-    if not user:
+    if not user or not user.password:
         return render_template("login.html", errors=True)
-    if not bcrypt.hashpw(password.encode('UTF-8'), user.password.encode('UTF-8')) == user.password.encode('UTF-8'):
+    if not bcrypt.hashpw(
+            password.encode('UTF-8'),
+            user.password.encode('UTF-8')) == user.password.encode('UTF-8'):
         return render_template("login.html", errors=True)
     login_user(user)
     if user.admin:
@@ -126,7 +146,8 @@ def logout():
 def issue_password_reset(email):
     user = User.query.filter(User.email == email).first()
     if not user:
-        return render_template("reset.html", errors="No one with that email found.")
+        return render_template("reset.html",
+                               errors="No one with that email found.")
     user.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
     user.password_reset_expires = datetime.now() + timedelta(days=1)
     send_password_reset(user)
@@ -134,7 +155,9 @@ def issue_password_reset(email):
     return render_template("reset.html", done=True)
 
 
-@html.route("/password-reset", methods=['GET', 'POST'], defaults={'token': None})
+@html.route("/password-reset",
+            methods=['GET', 'POST'],
+            defaults={'token': None})
 @html.route("/password-reset/<token>", methods=['GET', 'POST'])
 def reset_password(token):
     if request.method == "GET" and not token:
@@ -155,19 +178,24 @@ def reset_password(token):
         return render_template("reset.html", errors="This link has expired.")
 
     if request.method == 'GET':
-        if user.password_reset_expires == None or user.password_reset_expires < datetime.now():
-            return render_template("reset.html", errors="This link has expired.")
+        if user.password_reset_expires == None or user.password_reset_expires < datetime.now(
+        ):
+            return render_template("reset.html",
+                                   errors="This link has expired.")
         if user.password_reset != token:
             redirect(absolute_link())
         return render_template("reset.html", token=token)
     else:
-        if user.password_reset_expires == None or user.password_reset_expires < datetime.now():
+        if user.password_reset_expires == None or user.password_reset_expires < datetime.now(
+        ):
             abort(401)
         if user.password_reset != token:
             abort(401)
         password = request.form.get('password')
         if not password:
-            return render_template("reset.html", token=token, errors="You need to type a new password.")
+            return render_template("reset.html",
+                                   token=token,
+                                   errors="You need to type a new password.")
         user.set_password(password)
         user.password_reset = None
         user.password_reset_expires = None
@@ -179,12 +207,15 @@ def reset_password(token):
 @html.route("/panel")
 @loginrequired
 def panel():
-    return render_template("panel.html",
-                           one_times=lambda u: [
-                               d for d in u.donations if d.type == DonationType.one_time],
-                           recurring=lambda u: [
-                               d for d in u.donations if d.type == DonationType.monthly and d.active],
-                           currency=currency)
+    return render_template(
+        "panel.html",
+        one_times=lambda u:
+        [d for d in u.donations if d.type == DonationType.one_time],
+        recurring=lambda u: [
+            d for d in u.donations
+            if d.type == DonationType.monthly and d.active
+        ],
+        currency=currency)
 
 
 @html.route("/cancel/<id>")
