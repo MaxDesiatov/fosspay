@@ -5,7 +5,7 @@ import 'typeface-montserrat';
 import 'typeface-merriweather';
 
 import profilePic from './profile-pic.jpg';
-import { rhythm } from './typography';
+import { rhythm } from './Style/typography';
 
 const Container = (props) => (
   <div {...props} style={{ marginBottom: rhythm(1.5) }} />

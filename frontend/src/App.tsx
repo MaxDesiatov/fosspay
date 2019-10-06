@@ -1,16 +1,43 @@
 import React from 'react';
 import './App.css';
 
-import { rhythm, scale } from './typography';
+import { rhythm, scale } from './Style/typography';
 import Bio from './Bio';
 import Form from './Form';
 import { ProjectsProps } from './Form/Projects';
 import Navigation from './Navigation';
 import Summary from './Summary';
+import Monthly from './Success/Monthly';
+import Once from './Success/Once';
+import 'url-search-params-polyfill';
+
+const query = new URLSearchParams(window.location.search);
 
 declare var initialState: ProjectsProps;
 
 function App() {
+  let jsx: JSX.Element;
+
+  switch (query.get('success')) {
+    case 'once':
+      jsx = <Once />;
+      break;
+    case 'monthly':
+      jsx = <Monthly />;
+      break;
+    default:
+      jsx = (
+        <>
+          <Summary />
+          <Form
+            amounts={[5, 10, 20, 50]}
+            currency={{ symbol: '$' }}
+            projects={initialState.projects}
+          />
+        </>
+      );
+  }
+
   return (
     <div
       style={{
@@ -47,15 +74,10 @@ function App() {
         <Navigation />
       </header>
 
-      <Summary />
-      <Form
-        amounts={[5, 10, 20, 50]}
-        currency={{ symbol: '$' }}
-        projects={initialState.projects}
-      />
+      {jsx}
       <footer>
         <small>
-          Powered by <a href='https://github.com/SirCmpwn/fosspay'>fosspay</a>.
+          Powered by <a href='https://github.com/ddevault/fosspay'>fosspay</a>.
         </small>
       </footer>
     </div>
