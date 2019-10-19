@@ -2,7 +2,7 @@ import React from 'react';
 import { rhythm } from './typography';
 
 interface Props {
-  children: string;
+  children: JSX.Element[];
 }
 
 export default ({ children }: Props) => (
