@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActionType, StateProps } from './State';
+import { Checkbox } from '../Checkbox';
 
 export const Checkboxes = ({ dispatch, state }: StateProps) =>
   state.get('isSubscription') ? (
@@ -29,48 +30,26 @@ export const Checkboxes = ({ dispatch, state }: StateProps) =>
         <div>
           I accept that my data will be processed according to the{' '}
           <a href='/privacy'>Privacy Policy</a>: my email can be recorded and
-          cookies can be used so that I can manage my subscription. The
-          subscription can be cancelled at any time.
+          cookies can be used so that I can manage my sponsorship subscription.
+          The subscription can be cancelled at any time.
           <br />
           <small>(required for monthly sponsorship)</small>
         </div>
       </label>
-      <label className='checkbox-label'>
+      <Checkbox action={ActionType.setEmailUpdates} dispatch={dispatch}>
         <div>
-          <input
-            type='checkbox'
-            onChange={(e) =>
-              dispatch({
-                type: ActionType.setEmailUpdates,
-                payload: e.currentTarget.checked,
-              })
-            }
-          />
-        </div>
-        <div>
-          Send me email updates about my subscription, including exclusive
+          Send me email updates about my sponsorship, including exclusive
           articles and other sponsorship perks.
           <br />
           <small>(optional)</small>
         </div>
-      </label>
-      <label className='checkbox-label'>
-        <div>
-          <input
-            type='checkbox'
-            onChange={(e) =>
-              dispatch({
-                type: ActionType.setIsPublic,
-                payload: e.currentTarget.checked,
-              })
-            }
-          />
-        </div>
+      </Checkbox>
+      <Checkbox action={ActionType.setIsPublic} dispatch={dispatch}>
         <div>
           My sponsorship can be made public.
           <br />
           <small>(optional)</small>
         </div>
-      </label>
+      </Checkbox>
     </div>
   ) : null;

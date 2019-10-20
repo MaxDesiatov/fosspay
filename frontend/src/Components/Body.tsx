@@ -1,5 +1,5 @@
 import React from 'react';
-import { rhythm } from './typography';
+import { rhythm } from '../typography';
 
 interface Props {
   children: JSX.Element[];

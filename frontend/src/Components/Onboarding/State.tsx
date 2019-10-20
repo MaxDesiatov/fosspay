@@ -1,9 +1,10 @@
 import { Record, RecordOf, Set } from 'immutable';
 import { Dispatch, useReducer } from 'react';
+import { IAction } from '../../StateHelpers';
 
 type ValidationMessage = 'amount' | 'email' | 'privacy';
 
-const StateFactory = Record({
+const StateFactory = Record<State>({
   amount: 10,
   comments: '',
   email: '',
@@ -13,7 +14,7 @@ const StateFactory = Record({
   emailUpdates: false,
   projectID: null,
   validationMessages: Set(),
-} as State);
+});
 
 interface State {
   amount: number;
@@ -25,11 +26,6 @@ interface State {
   emailUpdates: boolean;
   projectID: number | null;
   validationMessages: Set<ValidationMessage>;
-}
-
-interface Action {
-  type: ActionType;
-  payload: any;
 }
 
 export enum ActionType {
@@ -46,7 +42,10 @@ export enum ActionType {
   resetValidationMessages = 'resetValidationMessages',
 }
 
-function reducer(state: RecordOf<State>, action: Action): RecordOf<State> {
+function reducer(
+  state: RecordOf<State>,
+  action: IAction<ActionType>,
+): RecordOf<State> {
   switch (action.type) {
     case ActionType.setAmount:
       return state.set('amount', action.payload);
@@ -79,7 +78,7 @@ function reducer(state: RecordOf<State>, action: Action): RecordOf<State> {
 
 export interface StateProps {
   state: RecordOf<State>;
-  dispatch: Dispatch<Action>;
+  dispatch: Dispatch<IAction<ActionType>>;
 }
 
 export const useFormState = () => useReducer(reducer, StateFactory({}));
