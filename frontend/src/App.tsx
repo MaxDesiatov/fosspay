@@ -1,12 +1,12 @@
 import React from 'react';
 import './App.css';
 
-import { rhythm, scale } from './typography';
+import { rhythm, scale } from './Helpers/typography';
 import Bio from './Components/Bio';
 import Form from './Components/Onboarding';
 import { ProjectsProps } from './Components/Onboarding/Projects';
 import Navigation from './Components/Navigation';
-import Summary from './Summary';
+import Summary from './Components/Summary';
 import Monthly from './Components/Success/Monthly';
 import Once from './Components/Success/Once';
 import 'url-search-params-polyfill';

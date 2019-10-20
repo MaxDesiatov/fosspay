@@ -16,8 +16,8 @@ export const Checkboxes = ({ dispatch, state }: StateProps) =>
             onChange={(e) => {
               dispatch({
                 type: e.currentTarget.checked
-                  ? ActionType.removeValidationMessage
-                  : ActionType.addValidationMessage,
+                  ? ActionType.removeValidation
+                  : ActionType.addValidation,
                 payload: 'privacy',
               });
               dispatch({

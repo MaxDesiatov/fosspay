@@ -1,5 +1,5 @@
 import React, { Dispatch } from 'react';
-import { IAction } from '../StateHelpers';
+import { IAction } from '../Helpers/IAction';
 
 interface CheckboxProps<T> {
   action: T;

@@ -1,8 +1,19 @@
 import { Record, RecordOf, Set } from 'immutable';
 import { Dispatch, useReducer } from 'react';
-import { IAction } from '../../StateHelpers';
+import { IAction } from '../../Helpers/IAction';
+import { EmailState, EmailValidation } from '../../Helpers/EmailState';
 
-type ValidationMessage = 'amount' | 'email' | 'privacy';
+type ValidationMessage = 'amount' | 'privacy';
+
+interface State extends EmailState<ValidationMessage> {
+  amount: number;
+  comments: string;
+  isPrivacyPolicyAccepted: boolean;
+  isPublic: boolean;
+  isSubscription: boolean;
+  emailUpdates: boolean;
+  projectID: number | null;
+}
 
 const StateFactory = Record<State>({
   amount: 10,
@@ -16,18 +27,6 @@ const StateFactory = Record<State>({
   validationMessages: Set(),
 });
 
-interface State {
-  amount: number;
-  comments: string;
-  email: string;
-  isPrivacyPolicyAccepted: false;
-  isPublic: boolean;
-  isSubscription: boolean;
-  emailUpdates: boolean;
-  projectID: number | null;
-  validationMessages: Set<ValidationMessage>;
-}
-
 export enum ActionType {
   setAmount = 'setAmount',
   setComments = 'setComments',
@@ -37,9 +36,9 @@ export enum ActionType {
   setIsPublic = 'setIsPublic',
   setProject = 'setProject',
   setEmailUpdates = 'setEmailUpdates',
-  addValidationMessage = 'pushValidationMessage',
-  removeValidationMessage = 'removeValidationMessage',
-  resetValidationMessages = 'resetValidationMessages',
+  addValidation = 'addValidation',
+  removeValidation = 'removeValidation',
+  resetValidation = 'resetValidation',
 }
 
 function reducer(
@@ -61,15 +60,15 @@ function reducer(
       return state.set('comments', action.payload);
     case ActionType.setIsPrivacyPolicyAccepted:
       return state.set('isPrivacyPolicyAccepted', action.payload);
-    case ActionType.addValidationMessage: {
+    case ActionType.addValidation: {
       const messages = state.get('validationMessages');
       return state.set('validationMessages', messages.add(action.payload));
     }
-    case ActionType.removeValidationMessage: {
+    case ActionType.removeValidation: {
       const messages = state.get('validationMessages');
       return state.set('validationMessages', messages.remove(action.payload));
     }
-    case ActionType.resetValidationMessages:
+    case ActionType.resetValidation:
       return state.set('validationMessages', Set());
     case ActionType.setEmailUpdates:
       return state.set('emailUpdates', action.payload);

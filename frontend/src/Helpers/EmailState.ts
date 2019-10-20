@@ -1,0 +1,8 @@
+import { Set } from 'immutable';
+
+export type EmailValidation<T> = 'email' | T;
+
+export interface EmailState<T> {
+  email: string;
+  validationMessages: Set<EmailValidation<T>>;
+}

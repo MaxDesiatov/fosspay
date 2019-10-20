@@ -1,5 +1,5 @@
 import React from 'react';
-import { Email } from './Email';
+import { Email } from '../Email';
 import { ActionType, StateProps } from './State';
 
 export const Frequency = ({ dispatch, state }: StateProps) => {
@@ -11,7 +11,7 @@ export const Frequency = ({ dispatch, state }: StateProps) => {
           onClick={() => {
             dispatch({ type: ActionType.setIsSubscription, payload: false });
             dispatch({
-              type: ActionType.resetValidationMessages,
+              type: ActionType.resetValidation,
               payload: null,
             });
           }}
@@ -34,7 +34,20 @@ export const Frequency = ({ dispatch, state }: StateProps) => {
           Monthly
         </button>
       </div>
-      {state.get('isSubscription') ? <Email {...{ dispatch, state }} /> : null}
+      {state.get('isSubscription') ? (
+        <>
+          <div className='email-explainer'>
+            Your email is required for monthly sponsorship so that you can
+            cancel your subscription later if you'd like to:
+          </div>
+          <Email
+            {...{ dispatch, state }}
+            setEmail={ActionType.setEmail}
+            addValidation={ActionType.addValidation}
+            removeValidation={ActionType.removeValidation}
+          />{' '}
+        </>
+      ) : null}
     </>
   );
 };

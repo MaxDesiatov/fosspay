@@ -30,7 +30,7 @@ export const Amount = ({
               dispatch({ type: ActionType.setAmount, payload: amount });
               setIsCustom(false);
               dispatch({
-                type: ActionType.removeValidationMessage,
+                type: ActionType.removeValidation,
                 payload: 'amount',
               });
             }}
@@ -61,12 +61,12 @@ export const Amount = ({
               });
               if (isNaN(value)) {
                 dispatch({
-                  type: ActionType.addValidationMessage,
+                  type: ActionType.addValidation,
                   payload: 'amount',
                 });
               } else {
                 dispatch({
-                  type: ActionType.removeValidationMessage,
+                  type: ActionType.removeValidation,
                   payload: 'amount',
                 });
               }

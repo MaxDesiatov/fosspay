@@ -1,5 +1,5 @@
 import React from 'react';
-import Body from './Components/Body';
+import Body from './Body';
 
 export default () => (
   <Body>

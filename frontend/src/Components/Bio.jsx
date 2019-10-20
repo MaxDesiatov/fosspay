@@ -1,6 +1,6 @@
 import React from 'react';
 import profilePic from '../profile-pic.jpg';
-import { rhythm } from '../typography';
+import { rhythm } from '../Helpers/typography';
 
 const Container = (props) => (
   <div {...props} style={{ marginBottom: rhythm(1.5) }} />

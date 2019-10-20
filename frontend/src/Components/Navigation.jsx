@@ -6,7 +6,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { faRssSquare } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { rhythm } from '../typography';
+import { rhythm } from '../Helpers/typography';
 
 const Container = (props) => (
   <div

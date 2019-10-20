@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { validEmail } from './Email';
+import { validEmail } from '../../Helpers/validation';
 import { ActionType, StateProps } from './State';
 import stripe from './stripe';
 
@@ -36,7 +36,7 @@ export const Submit = ({ dispatch, state }: StateProps) => {
           const isSubscription = state.get('isSubscription');
           if (isSubscription && !validEmail(state.get('email'))) {
             dispatch({
-              type: ActionType.addValidationMessage,
+              type: ActionType.addValidation,
               payload: 'email',
             });
             isValid = false;
@@ -44,7 +44,7 @@ export const Submit = ({ dispatch, state }: StateProps) => {
 
           if (isSubscription && !state.get('isPrivacyPolicyAccepted')) {
             dispatch({
-              type: ActionType.addValidationMessage,
+              type: ActionType.addValidation,
               payload: 'privacy',
             });
             isValid = false;
