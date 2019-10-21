@@ -2,7 +2,7 @@ import React from 'react';
 
 import 'whatwg-fetch';
 import { useFormState } from './State';
-import { Submit } from './Submit';
+import { OnboardingSubmit } from './Submit';
 import { AmountProps, Amount } from './Amount';
 import { Frequency } from './Frequency';
 import { ProjectsProps, Projects } from './Projects';
@@ -20,7 +20,7 @@ export default (props: AmountProps & ProjectsProps) => {
       <Projects {...newProps} />
       <Comments {...newProps} />
       <Checkboxes {...newProps} />
-      <Submit {...newProps} />
+      <OnboardingSubmit {...newProps} />
     </div>
   );
 };

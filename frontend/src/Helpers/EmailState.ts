@@ -4,5 +4,6 @@ export type EmailValidation<T> = 'email' | T;
 
 export interface EmailState<T> {
   email: string;
+  isPrivacyPolicyAccepted: boolean;
   validationMessages: Set<EmailValidation<T>>;
 }

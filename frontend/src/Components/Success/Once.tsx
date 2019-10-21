@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react';
+import React, { useReducer, Dispatch } from 'react';
 import Body from '../Body';
 import { Checkbox } from '../Checkbox';
 import { Record, RecordOf, Set } from 'immutable';
@@ -42,6 +42,13 @@ function reducer(
     }
   }
 }
+
+interface SubmitProps {
+  dispatch: Dispatch<IAction<ActionType>>;
+  state: RecordOf<State>;
+}
+
+const OnceSubmit = ({ dispatch, state }: SubmitProps) => {};
 
 export default () => {
   const [state, dispatch] = useReducer(reducer, StateFactory({}));
