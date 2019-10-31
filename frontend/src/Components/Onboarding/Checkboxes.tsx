@@ -1,41 +1,20 @@
 import React from 'react';
 import { ActionType, StateProps } from './State';
 import { Checkbox } from '../Checkbox';
+import { PrivacyCheckbox } from '../PrivacyCheckbox';
 
 export const Checkboxes = ({ dispatch, state }: StateProps) =>
   state.get('isSubscription') ? (
     <div className='checkbox-block'>
-      <label
-        className={`checkbox-label${
-          state.get('validationMessages').contains('privacy') ? ' invalid' : ''
-        }`}
+      <PrivacyCheckbox
+        addValidation={ActionType.addValidation}
+        removeValidation={ActionType.removeValidation}
+        setIsAccepted={ActionType.setIsPrivacyPolicyAccepted}
+        dispatch={dispatch}
+        state={state}
       >
-        <div>
-          <input
-            type='checkbox'
-            onChange={(e) => {
-              dispatch({
-                type: e.currentTarget.checked
-                  ? ActionType.removeValidation
-                  : ActionType.addValidation,
-                payload: 'privacy',
-              });
-              dispatch({
-                type: ActionType.setIsPrivacyPolicyAccepted,
-                payload: e.currentTarget.checked,
-              });
-            }}
-          />
-        </div>
-        <div>
-          I accept that my data will be processed according to the{' '}
-          <a href='/privacy'>Privacy Policy</a>: my email can be recorded and
-          cookies can be used so that I can manage my sponsorship subscription.
-          The subscription can be cancelled at any time.
-          <br />
-          <small>(required for monthly sponsorship)</small>
-        </div>
-      </label>
+        sponsorship
+      </PrivacyCheckbox>
       <Checkbox action={ActionType.setEmailUpdates} dispatch={dispatch}>
         <div>
           Send me email updates about my sponsorship, including exclusive

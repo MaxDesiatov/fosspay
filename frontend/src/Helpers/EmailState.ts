@@ -1,6 +1,6 @@
 import { Set } from 'immutable';
 
-export type EmailValidation<T> = 'email' | T;
+export type EmailValidation<T> = 'email' | 'privacy' | T;
 
 export interface EmailState<T> {
   email: string;

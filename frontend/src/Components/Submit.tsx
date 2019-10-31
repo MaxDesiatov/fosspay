@@ -16,7 +16,7 @@ interface SubmitProps<V, S extends EmailState<V>, T> {
   children: string;
   dispatch: Dispatch<IAction<T>>;
   state: RecordOf<S>;
-  shouldValidate: boolean;
+  shouldValidateEmail: boolean;
 }
 
 export function Submit<V, S extends EmailState<V>, A>({
@@ -25,7 +25,7 @@ export function Submit<V, S extends EmailState<V>, A>({
   dispatch,
   executeRequest,
   state,
-  shouldValidate,
+  shouldValidateEmail,
 }: SubmitProps<V, S, A>) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<React.ReactElement | null>(null);
@@ -56,7 +56,7 @@ export function Submit<V, S extends EmailState<V>, A>({
         type='submit'
         onClick={async () => {
           let isValid = true;
-          if (shouldValidate && !validEmail(state.get('email'))) {
+          if (shouldValidateEmail && !validEmail(state.get('email'))) {
             dispatch({
               type: addValidation,
               payload: 'email',
@@ -64,7 +64,7 @@ export function Submit<V, S extends EmailState<V>, A>({
             isValid = false;
           }
 
-          if (shouldValidate && !state.get('isPrivacyPolicyAccepted')) {
+          if (shouldValidateEmail && !state.get('isPrivacyPolicyAccepted')) {
             dispatch({
               type: addValidation,
               payload: 'privacy',

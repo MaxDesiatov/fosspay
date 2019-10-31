@@ -1,11 +1,9 @@
 import { Record, RecordOf, Set } from 'immutable';
 import { Dispatch, useReducer } from 'react';
 import { IAction } from '../../Helpers/IAction';
-import { EmailState, EmailValidation } from '../../Helpers/EmailState';
+import { EmailState } from '../../Helpers/EmailState';
 
-type ValidationMessage = 'amount' | 'privacy';
-
-interface State extends EmailState<ValidationMessage> {
+interface State extends EmailState<'amount'> {
   amount: number;
   comments: string;
   isPrivacyPolicyAccepted: boolean;

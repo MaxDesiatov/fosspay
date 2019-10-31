@@ -1,10 +1,11 @@
 import React, { useReducer, Dispatch } from 'react';
 import Body from '../Body';
-import { Checkbox } from '../Checkbox';
 import { Record, RecordOf, Set } from 'immutable';
 import { IAction } from '../../Helpers/IAction';
 import { EmailState } from '../../Helpers/EmailState';
 import { Email } from '../Email';
+import { Submit } from '../Submit';
+import { PrivacyCheckbox } from '../PrivacyCheckbox';
 
 interface State extends EmailState<'privacy'> {
   isPrivacyPolicyAccepted: boolean;
@@ -48,13 +49,27 @@ interface SubmitProps {
   state: RecordOf<State>;
 }
 
-const OnceSubmit = ({ dispatch, state }: SubmitProps) => {};
+const OnceSubmit = ({ dispatch, state }: SubmitProps) => (
+  <Submit<'privacy', State, ActionType>
+    addValidation={ActionType.addValidation}
+    dispatch={dispatch}
+    state={state}
+    shouldValidateEmail={true}
+    executeRequest={async (setProcessing, setError) => {
+      return;
+    }}
+  >
+    Subscribe
+  </Submit>
+);
 
 export default () => {
   const [state, dispatch] = useReducer(reducer, StateFactory({}));
   return (
     <Body>
-      <h3>Thank you for your sponsorship!</h3>
+      <span style={{ textAlign: 'center' }}>
+        <h3>Thank you for your sponsorship!</h3>
+      </span>
       <p>
         Would you like to get email updates about my work, including exclusive
         articles and other sponsorship perks?
@@ -68,20 +83,17 @@ export default () => {
         />
 
         <div className='checkbox-block'>
-          <Checkbox
-            action={ActionType.setIsPrivacyPolicyAccepted}
+          <PrivacyCheckbox
+            setIsAccepted={ActionType.setIsPrivacyPolicyAccepted}
+            addValidation={ActionType.addValidation}
+            removeValidation={ActionType.removeValidation}
             dispatch={dispatch}
+            state={state}
           >
-            <div>
-              I accept that my data will be processed according to the{' '}
-              <a href='/privacy'>Privacy Policy</a>: my email can be recorded
-              and cookies can be used so that I can manage my email
-              subscription. The subscription can be cancelled at any time.
-              <br />
-              <small>(required)</small>
-            </div>
-          </Checkbox>
+            email
+          </PrivacyCheckbox>
         </div>
+        <OnceSubmit dispatch={dispatch} state={state} />
       </div>
     </Body>
   );

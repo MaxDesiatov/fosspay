@@ -49,7 +49,7 @@ export function Email<V, S extends EmailState<V>, T>({
             payload: 'email',
           });
         }}
-        placeholder='Email'
+        placeholder='Your Email'
       />
     </div>
   );

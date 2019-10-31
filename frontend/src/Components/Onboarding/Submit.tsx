@@ -7,7 +7,7 @@ export const OnboardingSubmit = ({ dispatch, state }: StateProps) => (
   <Submit
     {...{ dispatch, state }}
     addValidation={ActionType.addValidation}
-    shouldValidate={state.get('isSubscription')}
+    shouldValidateEmail={state.get('isSubscription')}
     executeRequest={async (setIsProcessing, setError) => {
       const response = await fetch('/sponsor/checkout_session', {
         method: 'POST',
