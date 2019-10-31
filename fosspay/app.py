@@ -136,6 +136,25 @@ def initial_state():
         mimetype='application/javascript')
 
 
+@app.route('/sponsor/email_subscription', methods=['POST'])
+def email_subscribtion():
+    data = json.loads(request.data)
+    email = 'email' in data and data['email']
+    if email:
+        user = User.query.filter(User.email == email).first()
+        if not user:
+            user = User(email)
+            user.is_public = False
+            user.email_updates = True
+            db.add(user)
+        else:
+            user.email_updates = True
+        db.commit()
+        return jsonify({})
+    else:
+        return jsonify({'error': 'no email provided'})
+
+
 @app.route('/sponsor/checkout_session', methods=['POST'])
 def checkout_session():
     data = json.loads(request.data)

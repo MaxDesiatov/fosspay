@@ -79,7 +79,6 @@ export function Submit<V, S extends EmailState<V>, A>({
           try {
             await executeRequest(setIsProcessing, setError);
           } catch (error) {
-            setIsProcessing(false);
             setError(
               <h3 className='payment-error'>
                 An error occurred while processing your request. Please try
@@ -88,6 +87,8 @@ export function Submit<V, S extends EmailState<V>, A>({
               </h3>,
             );
             console.error(error.toString());
+          } finally {
+            setIsProcessing(false);
           }
         }}
       >
