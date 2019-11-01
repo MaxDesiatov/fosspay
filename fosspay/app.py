@@ -159,10 +159,18 @@ def email_subscribtion():
 def checkout_session():
     data = json.loads(request.data)
 
+    is_subscription = 'isSubscription' in data and data['isSubscription']
+
+    if not type(is_subscription) == bool:
+        raise ValueError(f'invalid is_subscription value: {is_subscription}')
+
     args = {
         'payment_method_types': ['card'],
-        'success_url': _cfg("protocol") + "://" + _cfg("domain"),
-        'cancel_url': _cfg("protocol") + "://" + _cfg("domain"),
+        'success_url':
+        _cfg("protocol") + "://" + _cfg("domain") + '/?success=' +
+        ('monthly' if is_subscription else 'once'),
+        'cancel_url':
+        _cfg("protocol") + "://" + _cfg("domain"),
     }
 
     email = 'email' in data and data['email']
@@ -180,7 +188,6 @@ def checkout_session():
         db.commit()
         args['customer'] = user.stripe_customer
 
-    is_subscription = 'isSubscription' in data and data['isSubscription']
     amount = data['amount']
 
     if not isinstance(amount, Number):
