@@ -180,11 +180,10 @@ def checkout_session():
         user = User.query.filter(User.email == email).first()
         if not user:
             user = User(email)
-            user.is_public = is_public
-            user.email_updates = email_updates
             user.stripe_customer = stripe.Customer.create(email=email).id
             db.add(user)
         user.is_public = is_public
+        user.email_updates = email_updates
         db.commit()
         args['customer'] = user.stripe_customer
 
@@ -220,3 +219,45 @@ def checkout_session():
     session = stripe.checkout.Session.create(**args)
 
     return jsonify({'sessionId': session.id, 'amount': data['amount']})
+
+
+@app.route('/sponsor/webhook', methods=['POST'])
+def webhook():
+    payload = request.data
+    sig_header = request.headers['Stripe-Signature']
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header,
+                                               _cfg("stripe_endpoint_secret"))
+    except ValueError as e:
+        # Invalid payload
+        return ('', 400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return ('', 400)
+
+    # Handle the checkout.session.completed event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+
+        print(f'sponsorship fulfilled: {session}')
+        customer = stripe.Customer.retrieve(session['customer'])
+
+        user = User.query.filter(User.email == customer.email).first()
+        if not user:
+            user = User(customer.email)
+            user.is_public = False
+            user.email_updates = False
+            user.stripe_customer = customer.id
+            db.add(user)
+
+        ty = DonationType.monthly if isinstance(session['subscription'],
+                                                str) else DonationType.one_time
+        amount = 0
+        for item in session['display_items']:
+            amount += item['amount']
+        donation = Donation(user, ty, amount)
+        db.commit()
+
+    return ('', 200)
