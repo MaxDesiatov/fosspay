@@ -174,6 +174,7 @@ def checkout_session():
     }
 
     email = 'email' in data and data['email']
+    user = None
     if email:
         is_public = 'isPublic' in data and data['isPublic']
         email_updates = 'emailUpdates' in data and data['emailUpdates']
@@ -184,7 +185,6 @@ def checkout_session():
             db.add(user)
         user.is_public = is_public
         user.email_updates = email_updates
-        db.commit()
         args['customer'] = user.stripe_customer
 
     amount = data['amount']
@@ -218,6 +218,17 @@ def checkout_session():
 
     session = stripe.checkout.Session.create(**args)
 
+    project_id = 'projectID' in data and data['projectID']
+    comments = 'comments' in data and data['comments']
+    ty = DonationType.monthly if is_subscription else DonationType.one_time
+    donation = Donation(user, ty, amount, session.id, project_id, comments)
+    try:
+        db.add(donation)
+        db.commit()
+    except Exception as e:
+        print(e)
+        return jsonify({'success': False})
+
     return jsonify({'sessionId': session.id, 'amount': data['amount']})
 
 
@@ -241,7 +252,13 @@ def webhook():
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
 
-        print(f'sponsorship fulfilled: {session}')
+        donation = Donation.query.filter(
+            Donation.session_id == session.id).first()
+
+        if not donation:
+            # Matching donation not found
+            return ('', 400)
+
         customer = stripe.Customer.retrieve(session['customer'])
 
         user = User.query.filter(User.email == customer.email).first()
@@ -252,12 +269,13 @@ def webhook():
             user.stripe_customer = customer.id
             db.add(user)
 
-        ty = DonationType.monthly if isinstance(session['subscription'],
-                                                str) else DonationType.one_time
-        amount = 0
-        for item in session['display_items']:
-            amount += item['amount']
-        donation = Donation(user, ty, amount)
-        db.commit()
+        donation.user = user
+        donation.session_is_complete = True
+
+        try:
+            db.commit()
+        except Exception as e:
+            print(e)
+            return jsonify({'success': False})
 
     return ('', 200)

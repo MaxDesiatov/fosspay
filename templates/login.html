@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
-{% block body %} 
+{% block body %}
 <div class="well">
     <div class="container">
-        <h1>Donate to {{ _cfg("your-name") }}</h1>
+        <h1>Manage your sponsorship at {{ _cfg("site-name") }}</h1>
     </div>
 </div>
 <div class="container">
@@ -12,7 +12,7 @@
             {% if errors %}
             <div class="alert alert-danger">
                 <p>
-                Username or password incorrect.
+                    Username or password are incorrect.
                 </p>
             </div>
             {% endif %}

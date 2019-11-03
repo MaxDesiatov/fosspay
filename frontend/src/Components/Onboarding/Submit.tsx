@@ -20,6 +20,8 @@ export const OnboardingSubmit = ({ dispatch, state }: StateProps) => (
           isSubscription: state.get('isSubscription'),
           isPublic: state.get('isPublic'),
           emailUpdates: state.get('emailUpdates'),
+          projectID: state.get('projectID'),
+          comments: state.get('comments'),
         }),
       });
       const { sessionId } = await response.json();

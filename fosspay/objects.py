@@ -75,8 +75,16 @@ class Donation(Base):
     active = Column(Boolean)
     payments = Column(Integer)
     hidden = Column(Boolean, server_default='f', nullable=False)
+    session_id = Column(String, nullable=False)
+    session_is_complete = Column(Boolean, nullable=False)
 
-    def __init__(self, user, type, amount, project=None, comment=None):
+    def __init__(self,
+                 user,
+                 type,
+                 amount,
+                 session_id,
+                 project_id=None,
+                 comment=None):
         self.user = user
         self.type = type
         self.amount = amount
@@ -86,8 +94,9 @@ class Donation(Base):
         self.comment = comment
         self.active = True
         self.payments = 1
-        if project:
-            self.project_id = project.id
+        self.session_id = session_id
+        self.session_is_complete = False
+        self.project_id = project_id
 
     def __repr__(self):
         return "<Donation {} from {}: ${} ({})>".format(
