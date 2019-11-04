@@ -41,7 +41,7 @@ export function PrivacyCheckbox<V, S extends EmailState<V>, T>({
         cookies can be used so that I can manage my {children} subscription. The
         subscription can be cancelled at any time.
         <br />
-        <small>(required for monthly {children} subscription)</small>
+        <small>(required for {children} subscription)</small>
       </div>
     </Checkbox>
   );

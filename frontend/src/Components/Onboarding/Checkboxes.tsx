@@ -13,7 +13,7 @@ export const Checkboxes = ({ dispatch, state }: StateProps) =>
         dispatch={dispatch}
         state={state}
       >
-        sponsorship
+        monthly sponsorship
       </PrivacyCheckbox>
       <Checkbox action={ActionType.setEmailUpdates} dispatch={dispatch}>
         <div>
