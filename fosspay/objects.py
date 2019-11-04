@@ -5,7 +5,7 @@ from sqlalchemy_utils import ChoiceType
 
 from .database import Base
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 import bcrypt
 import binascii
@@ -34,6 +34,10 @@ class User(Base):
     def set_password(self, password):
         self.password = bcrypt.hashpw(password.encode("utf-8"),
                                       bcrypt.gensalt()).decode("utf-8")
+
+    def set_password_reset(self):
+        self.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
+        self.password_reset_expires = datetime.now() + timedelta(days=1)
 
     def __init__(self, email, password=None):
         self.email = email

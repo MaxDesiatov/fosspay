@@ -12,7 +12,8 @@ from fosspay.objects import User, DonationType
 from fosspay.config import _cfg, _cfgi
 from fosspay.currency import currency
 
-def send_thank_you(user, amount, monthly):
+
+def send_thank_you(donation):
     if _cfg("smtp-host") == "":
         return
     smtp = smtplib.SMTP(_cfg("smtp-host"), _cfgi("smtp-port"))
@@ -22,19 +23,21 @@ def send_thank_you(user, amount, monthly):
     with open("emails/thank-you") as f:
         message = MIMEText(html.parser.HTMLParser().unescape(\
             pystache.render(f.read(), {
-                "user": user,
+                "user": donation.user,
                 "root": _cfg("protocol") + "://" + _cfg("domain"),
                 "your_name": _cfg("your-name"),
-                "amount": currency.amount("{:.2f}".format(amount / 100)),
-                "monthly": monthly,
+                "amount": currency.amount("{:.2f}".format(donation.amount / 100)),
+                "monthly": donation.type == DonationType.monthly,
                 "your_email": _cfg("your-email")
             })))
     message['Subject'] = "Thank you for your sponsorship!"
     message['From'] = _cfg("smtp-from")
-    message['To'] = user.email
+    message['To'] = donation.user.email
     message['Date'] = format_datetime(localtime())
-    smtp.sendmail(_cfg("smtp-from"), [ user.email ], message.as_string())
+    smtp.sendmail(_cfg("smtp-from"), [donation.user.email],
+                  message.as_string())
     smtp.quit()
+
 
 def send_password_reset(user):
     if _cfg("smtp-host") == "":
@@ -55,8 +58,9 @@ def send_password_reset(user):
     message['From'] = _cfg("smtp-from")
     message['To'] = user.email
     message['Date'] = format_datetime(localtime())
-    smtp.sendmail(_cfg("smtp-from"), [ user.email ], message.as_string())
+    smtp.sendmail(_cfg("smtp-from"), [user.email], message.as_string())
     smtp.quit()
+
 
 def send_declined(user, amount):
     if _cfg("smtp-host") == "":
@@ -77,8 +81,9 @@ def send_declined(user, amount):
     message['From'] = _cfg("smtp-from")
     message['To'] = user.email
     message['Date'] = format_datetime(localtime())
-    smtp.sendmail(_cfg("smtp-from"), [ user.email ], message.as_string())
+    smtp.sendmail(_cfg("smtp-from"), [user.email], message.as_string())
     smtp.quit()
+
 
 def send_new_donation(user, donation):
     if _cfg("smtp-host") == "":
@@ -103,8 +108,9 @@ def send_new_donation(user, donation):
     message['From'] = _cfg("smtp-from")
     message['To'] = f"{_cfg('your-name')} <{_cfg('your-email')}>"
     message['Date'] = format_datetime(localtime())
-    smtp.sendmail(_cfg("smtp-from"), [ _cfg('your-email') ], message.as_string())
+    smtp.sendmail(_cfg("smtp-from"), [_cfg('your-email')], message.as_string())
     smtp.quit()
+
 
 def send_cancellation_notice(user, donation):
     if _cfg("smtp-host") == "":
@@ -126,7 +132,7 @@ def send_cancellation_notice(user, donation):
     message['From'] = _cfg("smtp-from")
     message['To'] = f"{_cfg('your-name')} <{_cfg('your-email')}>"
     message['Date'] = format_datetime(localtime())
-    smtp.sendmail(_cfg("smtp-from"), [ _cfg('your-email') ], message.as_string())
+    smtp.sendmail(_cfg("smtp-from"), [_cfg('your-email')], message.as_string())
     smtp.quit()
 
 

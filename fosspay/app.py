@@ -273,7 +273,13 @@ def webhook():
         donation.session_is_complete = True
 
         try:
+            # Monthly subscribers have accepted privacy policy by this point,
+            # so send them a password reset so that they can log in later and
+            # manager their subscriptions.
+            if donation.type == DonationType.monthly:
+                user.set_password_reset()
             db.commit()
+            send_thank_you(donation)
         except Exception as e:
             print(e)
             return jsonify({'success': False})
