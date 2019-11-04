@@ -209,6 +209,8 @@ def reset_password(token):
 def panel():
     return render_template(
         "panel.html",
+        all_donations=lambda u:
+        [d for d in u.donations],
         one_times=lambda u:
         [d for d in u.donations if d.type == DonationType.one_time],
         recurring=lambda u: [

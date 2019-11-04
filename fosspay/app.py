@@ -218,7 +218,7 @@ def checkout_session():
 
     session = stripe.checkout.Session.create(**args)
 
-    project_id = 'projectID' in data and data['projectID']
+    project_id = ('projectID' in data and data['projectID']) or None
     comments = 'comments' in data and data['comments']
     ty = DonationType.monthly if is_subscription else DonationType.one_time
     donation = Donation(user, ty, amount, session.id, project_id, comments)
