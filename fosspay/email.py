@@ -54,7 +54,7 @@ def send_password_reset(user):
                 "your_name": _cfg("your-name"),
                 "your_email": _cfg("your-email")
             })))
-    message['Subject'] = "Reset your donor password"
+    message['Subject'] = f"Reset your {_cfg('site-name')} sponsorship password"
     message['From'] = _cfg("smtp-from")
     message['To'] = user.email
     message['Date'] = format_datetime(localtime())

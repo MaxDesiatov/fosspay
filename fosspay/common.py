@@ -12,6 +12,7 @@ import requests
 import xml.etree.ElementTree as ET
 import hashlib
 
+
 def firstparagraph(text):
     try:
         para = text.index("\n\n")
@@ -22,6 +23,7 @@ def firstparagraph(text):
             return text[:para + 4]
         except:
             return text
+
 
 def with_session(f):
     @wraps(f)
@@ -34,27 +36,38 @@ def with_session(f):
             db.rollback()
             db.close()
             raise
+
     return go
+
 
 def loginrequired(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
+        print(f'current_user is {current_user}')
         if not current_user:
-            return redirect(absolute_link("login?return_to=" + urllib.parse.quote_plus(request.url)))
+            return redirect(
+                absolute_link("login?return_to=" +
+                              urllib.parse.quote_plus(request.url)))
         else:
             return f(*args, **kwargs)
+
     return wrapper
+
 
 def adminrequired(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not current_user:
-            return redirect(absolute_link("login?return_to=" + urllib.parse.quote_plus(request.url)))
+            return redirect(
+                absolute_link("login?return_to=" +
+                              urllib.parse.quote_plus(request.url)))
         else:
             if not current_user.admin:
                 abort(401)
             return f(*args, **kwargs)
+
     return wrapper
+
 
 def json_output(f):
     @wraps(f)
@@ -75,6 +88,7 @@ def json_output(f):
         return result
 
     return wrapper
+
 
 def cors(f):
     @wraps(f)
@@ -97,8 +111,11 @@ def cors(f):
 
     return wrapper
 
+
 def absolute_link(path=""):
     return _cfg("protocol") + "://" + _cfg("domain") + "/" + path
 
+
 def disown_link(path):
-    return _cfg("protocol") + "://"  + _cfg("domain") + "/disown?filename=" + path
+    return _cfg("protocol") + "://" + _cfg(
+        "domain") + "/disown?filename=" + path

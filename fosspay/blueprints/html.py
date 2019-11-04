@@ -140,7 +140,7 @@ def login():
 @loginrequired
 def logout():
     logout_user()
-    return redirect(absolute_link())
+    return redirect(absolute_link("panel"))
 
 
 def issue_password_reset(email):
