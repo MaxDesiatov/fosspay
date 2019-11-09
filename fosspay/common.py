@@ -43,7 +43,6 @@ def with_session(f):
 def loginrequired(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        print(f'current_user is {current_user}')
         if not current_user:
             return redirect(
                 absolute_link("login?return_to=" +

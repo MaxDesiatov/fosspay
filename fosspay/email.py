@@ -145,11 +145,13 @@ def send_account_deleted(user):
     smtp.login(_cfg("smtp-user"), _cfg("smtp-password"))
     with open("emails/goodbye") as f:
         message = MIMEText(html.parser.HTMLParser().unescape(
-            pystache.render(f.read(), {
-                "your_name": _cfg("your-name"),
-                "your_email": _cfg("your-email")
-            })))
-    message['Subject'] = "A warm thank you!"
+            pystache.render(
+                f.read(), {
+                    "root": _cfg("protocol") + "://" + _cfg("domain"),
+                    "your_name": _cfg("your-name"),
+                    "your_email": _cfg("your-email")
+                })))
+    message['Subject'] = "Your account has been deleted."
     message['From'] = _cfg("smtp-from")
     message['To'] = user.email
     message['Date'] = format_datetime(localtime())

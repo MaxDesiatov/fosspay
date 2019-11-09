@@ -241,7 +241,7 @@ def deleteAccount(id):
     # remove user donation
     Donation.query.filter(Donation.user_id == id).delete()
     # send warm mail
-    send_account_deleted(user)
+    send_account_deleted(user.first())
     # remove user
     user.delete()
     db.commit()
