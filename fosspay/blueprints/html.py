@@ -147,7 +147,7 @@ def issue_password_reset(email):
     user = User.query.filter(User.email == email).first()
     if not user:
         return render_template("reset.html",
-                               errors="No one with that email found.")
+                               errors="No one found with that email.")
     user.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
     user.password_reset_expires = datetime.now() + timedelta(days=1)
     send_password_reset(user)
