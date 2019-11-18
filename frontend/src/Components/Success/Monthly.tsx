@@ -1,6 +1,8 @@
 import React from 'react';
 import Body from '../Body';
 
+const query = new URLSearchParams(window.location.search);
+
 export default () => (
   <Body>
     <span style={{ textAlign: 'center' }}>
@@ -8,8 +10,15 @@ export default () => (
     </span>
     <p>
       An email has been sent to you with a link that allows you to manage your
-      sponsorship subscription. You can also set your password and access
-      sponsorship management <a href='/sponsor/password-reset'>here directly</a>
+      sponsorship subscription. You can also create your account and access
+      sponsorship management{' '}
+      <a
+        href={`/sponsor/create-account${
+          query ? '?email=' + query.get('email') : ''
+        }`}
+      >
+        here directly
+      </a>
       .
     </p>
     <p>

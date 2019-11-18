@@ -9,8 +9,8 @@ export default () => (
     specific project you'd like to support in the form below.
     <br />
     <br />
-    Been here before? Then you can also access{' '}
-    <a href='/sponsor/panel'>your sponsorship account</a> to manage your
+    Are you an existing sponsor with a monthly subscription? Then you can also
+    access <a href='/sponsor/panel'>your sponsorship account</a> to manage your
     payments.
   </Body>
 );

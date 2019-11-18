@@ -147,13 +147,21 @@ def issue_password_reset(email):
     user = User.query.filter(User.email == email).first()
     if not user:
         return render_template("reset.html",
-                               errors="No one found with that email.")
+                               errors="No one found with that email.",
+                               email=email)
     user.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
     user.password_reset_expires = datetime.now() + timedelta(days=1)
     send_password_reset(user)
     db.commit()
     return render_template("reset.html", done=True)
 
+@html.route("/create-account", methods=['GET'])
+def create_account():
+    return render_template(
+        "reset.html", 
+        email=request.args.get('email'), 
+        first_reset=True
+    )
 
 @html.route("/password-reset",
             methods=['GET', 'POST'],
@@ -161,7 +169,7 @@ def issue_password_reset(email):
 @html.route("/password-reset/<token>", methods=['GET', 'POST'])
 def reset_password(token):
     if request.method == "GET" and not token:
-        return render_template("reset.html")
+        return render_template("reset.html", email=request.args.get('email'))
 
     if request.method == "POST":
         token = request.form.get("token")

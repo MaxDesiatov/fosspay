@@ -13,13 +13,15 @@ interface State extends EmailState<'amount'> {
   projectID: number | null;
 }
 
+const query = new URLSearchParams(window.location.search);
+
 const StateFactory = Record<State>({
   amount: 10,
   comments: '',
   email: '',
   isPrivacyPolicyAccepted: false,
   isPublic: false,
-  isSubscription: true,
+  isSubscription: !(query.get('frequency') === 'once'),
   emailUpdates: false,
   projectID: null,
   validationMessages: Set(),

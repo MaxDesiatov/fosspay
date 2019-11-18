@@ -8,7 +8,11 @@
 <div class="container">
     <div class="row">
         <div class="col-md-6 col-md-offset-3">
+            {% if first_reset %}
+            <h1>Confirm your email for a new account</h1>
+            {% else %}
             <h1>Reset Password</h1>
+            {% endif %}
             {% if errors %}
             <div class="alert alert-danger">
                 <p>
@@ -32,7 +36,12 @@
             {% else %}
             <form action="{{root}}/password-reset" method="POST">
                 <div class="form-group">
+                    {% if email %}
+                    <input class="form-control" type="text" name="email" value="{{ email }}"
+                        placeholder="your@email.com" />
+                    {% else %}
                     <input class="form-control" type="text" name="email" placeholder="your@email.com" />
+                    {% endif %}
                 </div>
                 <input type="submit" value="Submit" class="btn btn-primary" />
             </form>

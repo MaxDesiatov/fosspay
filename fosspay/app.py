@@ -164,16 +164,17 @@ def checkout_session():
     if not type(is_subscription) == bool:
         raise ValueError(f'invalid is_subscription value: {is_subscription}')
 
+    email = 'email' in data and data['email']
+
     args = {
         'payment_method_types': ['card'],
         'success_url':
         _cfg("protocol") + "://" + _cfg("domain") + '/?success=' +
-        ('monthly' if is_subscription else 'once'),
+        (f'monthly&email={email}' if is_subscription else 'once'),
         'cancel_url':
         _cfg("protocol") + "://" + _cfg("domain"),
     }
 
-    email = 'email' in data and data['email']
     user = None
     if email:
         is_public = 'isPublic' in data and data['isPublic']
