@@ -16,10 +16,12 @@ export const OnboardingSubmit = ({ dispatch, state }: StateProps) => (
         },
         body: JSON.stringify({
           amount: state.get('amount') * 100,
-          email: state.get('email'),
+          email: state.get('isSubscription') ? state.get('email') : undefined,
           isSubscription: state.get('isSubscription'),
-          isPublic: state.get('isPublic'),
-          emailUpdates: state.get('emailUpdates'),
+          isPublic: state.get('isSubscription') ? state.get('isPublic') : false,
+          emailUpdates: state.get('isSubscription')
+            ? state.get('emailUpdates')
+            : false,
           projectID: state.get('projectID'),
           comments: state.get('comments'),
         }),
