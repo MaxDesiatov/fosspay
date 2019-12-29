@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
         - name: fosspay
-          image: 102409834926.dkr.ecr.us-east-1.amazonaws.com/sponsorship/fosspay:latest
+          image: gcr.io/sponsorship-263515/sponsorship:29.12.19
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
