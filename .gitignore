@@ -4,7 +4,6 @@ config.ini
 alembic.ini
 include/
 local/
-lib/
 *.swp
 *.rdb
 storage/
