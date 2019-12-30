@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: fosspay
+spec:
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: fosspay

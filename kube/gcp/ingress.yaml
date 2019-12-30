@@ -1,0 +1,11 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: sponsorship
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: sponsorship
+    networking.gke.io/managed-certificates: sponsorship
+spec:
+  backend:
+    serviceName: fosspay
+    servicePort: 80
