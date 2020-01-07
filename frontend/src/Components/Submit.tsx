@@ -52,7 +52,7 @@ export function Submit<V, S extends EmailState<V>, A>({
       {!isProcessing && error ? <div>{error}</div> : null}
       <button
         className='checkout'
-        disabled={state.get('validationMessages').count() > 0}
+        disabled={state.get('validationMessages').count() > 0 || isProcessing}
         type='submit'
         onClick={async () => {
           let isValid = true;
