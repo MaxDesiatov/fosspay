@@ -2,7 +2,7 @@ Thank you for registering your new sponsorship account at {{root}}.
 
 Now you need to set a password for the account. To proceed, click this link:
 
-{{root}}/password-reset/{{user.password_reset}}
+{{root}}/create-account/{{user.password_reset}}
 
 This link expires in 24 hours. If you don't want to set your password or you
 weren't expecting this email, just ignore it.

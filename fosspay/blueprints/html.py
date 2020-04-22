@@ -142,34 +142,91 @@ def logout():
     return redirect(absolute_link("panel"))
 
 
-def issue_password_reset(email, new_account=False):
+def issue_password_reset(email, is_new_account):
     user = User.query.filter(User.email == email).first()
     if not user:
         return render_template(
             "reset.html",
             errors=f"No account found with this email: {email}.",
             email=email)
-    if not new_account or \
+    if not is_new_account or \
         (user.password_reset_expires and user.password_reset_expires < datetime.now()):
         user.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
         user.password_reset_expires = datetime.now() + timedelta(days=1)
 
-    if new_account:
+    if is_new_account:
         send_new_account(user)
     else:
         send_password_reset(user)
     db.commit()
-    return render_template("reset.html", done=True, new_account=new_account)
+    return render_template("reset.html",
+                           done=True,
+                           is_new_account=is_new_account)
 
 
-@html.route("/create-account", methods=['GET', 'POST'])
-def create_account():
-    if request.method == "GET":
+def handle_password_reset(processed_request, is_new_account, token):
+    print("blah")
+    if processed_request.method == "GET" and not token:
         email = request.args.get('email')
-        return render_template("reset.html", email=email, new_account=True)
-    elif request.method == "POST":
-        email = request.form.get('email')
-        return issue_password_reset(email, new_account=True)
+        return render_template("reset.html",
+                               email=email,
+                               is_new_account=is_new_account)
+
+    if processed_request.method == "POST":
+        token = processed_request.form.get("token")
+        email = processed_request.form.get("email")
+
+        if email:
+            return issue_password_reset(email, is_new_account)
+
+        if not token:
+            return redirect(absolute_link())
+
+    user = User.query.filter(User.password_reset == token).first()
+    if not user:
+        return render_template("reset.html",
+                               errors="This link has expired.",
+                               is_new_account=is_new_account)
+
+    if processed_request.method == 'GET':
+        if user.password_reset_expires == None or \
+            user.password_reset_expires < datetime.now():
+            return render_template("reset.html",
+                                   errors="This link has expired.",
+                                   is_new_account=is_new_account)
+        if user.password_reset != token:
+            redirect(absolute_link())
+        return render_template("reset.html",
+                               token=token,
+                               is_new_account=is_new_account)
+    else:
+        if user.password_reset_expires == None or user.password_reset_expires < datetime.now(
+        ):
+            abort(401)
+        if user.password_reset != token:
+            abort(401)
+        password = processed_request.form.get('password')
+        if not password:
+            return render_template("reset.html",
+                                   token=token,
+                                   errors="You need to type a new password.",
+                                   is_new_account=is_new_account)
+        user.set_password(password)
+        user.password_reset = None
+        user.password_reset_expires = None
+        db.commit()
+        login_user(user)
+        return redirect(absolute_link("panel"))
+
+
+@html.route("/create-account",
+            methods=['GET', 'POST'],
+            defaults={'token': None})
+@html.route("/create-account/<token>", methods=['GET', 'POST'])
+def create_account(token):
+    print("create_account")
+    print(f"token is {token}")
+    return handle_password_reset(request, is_new_account=True, token=token)
 
 
 @html.route("/password-reset",
@@ -177,48 +234,8 @@ def create_account():
             defaults={'token': None})
 @html.route("/password-reset/<token>", methods=['GET', 'POST'])
 def reset_password(token):
-    if request.method == "GET" and not token:
-        return render_template("reset.html", email=request.args.get('email'))
-
-    if request.method == "POST":
-        token = request.form.get("token")
-        email = request.form.get("email")
-
-        if email:
-            return issue_password_reset(email)
-
-        if not token:
-            return redirect(absolute_link())
-
-    user = User.query.filter(User.password_reset == token).first()
-    if not user:
-        return render_template("reset.html", errors="This link has expired.")
-
-    if request.method == 'GET':
-        if user.password_reset_expires == None or user.password_reset_expires < datetime.now(
-        ):
-            return render_template("reset.html",
-                                   errors="This link has expired.")
-        if user.password_reset != token:
-            redirect(absolute_link())
-        return render_template("reset.html", token=token)
-    else:
-        if user.password_reset_expires == None or user.password_reset_expires < datetime.now(
-        ):
-            abort(401)
-        if user.password_reset != token:
-            abort(401)
-        password = request.form.get('password')
-        if not password:
-            return render_template("reset.html",
-                                   token=token,
-                                   errors="You need to type a new password.")
-        user.set_password(password)
-        user.password_reset = None
-        user.password_reset_expires = None
-        db.commit()
-        login_user(user)
-        return redirect(absolute_link("panel"))
+    print("reset_password")
+    return handle_password_reset(request, is_new_account=False, token=token)
 
 
 @html.route("/panel")

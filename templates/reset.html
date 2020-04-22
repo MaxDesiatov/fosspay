@@ -8,11 +8,13 @@
 <div class="container">
     <div class="row">
         <div class="col-md-6 col-md-offset-3">
-            {% if new_account %}
+            {% if is_new_account %}
             {% if done %}
             <h1>Your sponsorship account has been created!</h1>
+            {% elif token %}
+            <h1>Set a password for your new account:</h1>
             {% else %}
-            <h1>Confirm your email to create a new account.</h1>
+            <h1>Confirm your email to create a new account:</h1>
             {% endif %}
             {% else %}
             <h1>Reset Password</h1>
@@ -26,7 +28,7 @@
             {% endif %}
             {% if done %}
             <p>
-                {% if new_account %}
+                {% if is_new_account %}
                 A confirmation email with a link that
                 allows you to set an account password should arrive shortly. If you need help, please contact
                 <a href="mailto:{{_cfg("your-email")}}">{{_cfg("your-email")}}</a>.
@@ -47,7 +49,7 @@
                 <input type="submit" value="Submit" class="btn btn-primary" />
             </form>
             {% else %}
-            <form action="{{root}}/{{ 'create-account' if new_account else 'password-reset' }}" method="POST">
+            <form action="{{root}}/{{ 'create-account' if is_new_account else 'password-reset' }}" method="POST">
                 <div class="form-group">
                     {% if email %}
                     <input class="form-control" type="text" name="email" value="{{ email }}"
