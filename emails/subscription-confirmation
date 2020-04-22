@@ -1,0 +1,14 @@
+Thank you for your email subscription at {{root}}. You will receive updates about my work, including exclusive articles and other sponsorship perks.
+
+You can create an account to review your sponsorship payments here:
+
+{{root}}/create-account
+
+If you'd like to unsubscribe from email updates, please follow this link:
+
+{{root}}/email-unsubscribe?email={{user.email}}
+
+If you have questions, please email {{your_email}}.
+
+--
+{{your_name}}

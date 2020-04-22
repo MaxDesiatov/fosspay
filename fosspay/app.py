@@ -17,7 +17,7 @@ from fosspay.common import *
 from fosspay.network import *
 from fosspay.blueprints.html import html
 from datetime import datetime, timedelta
-from fosspay.email import send_thank_you, send_new_donation
+from fosspay.email import send_thank_you, send_new_donation, send_subscription_confirmation
 
 app = Flask(__name__,
             static_folder=os.path.join(os.getcwd(), "frontend/build"),
@@ -150,6 +150,7 @@ def email_subscribtion():
         else:
             user.email_updates = True
         db.commit()
+        send_subscription_confirmation(user)
         return jsonify({})
     else:
         return jsonify({'error': 'no email provided'})
@@ -274,6 +275,7 @@ def webhook():
         donation.session_is_complete = True
 
         try:
+            send_new_donation(user, donation)
             # Monthly subscribers have accepted privacy policy by this point,
             # so send them a password reset so that they can log in later and
             # manager their subscriptions.

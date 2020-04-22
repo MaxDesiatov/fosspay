@@ -5,7 +5,7 @@ from fosspay.objects import *
 from fosspay.database import db
 from fosspay.common import *
 from fosspay.config import _cfg, load_config
-from fosspay.email import send_password_reset, send_new_account, send_new_donation, \
+from fosspay.email import send_password_reset, send_new_account, \
     send_cancellation_notice, send_account_deleted
 from fosspay.currency import currency
 

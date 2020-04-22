@@ -7,17 +7,17 @@ Monthly sponsorship                {{amount}}
 
 You can view and manage your sponsorship online if you create a sponsorship account here:
 
-{{root}}/password-reset/{{user.password_reset}}
+{{root}}/create-account/{{user.password_reset}}
 
 This link expires in 24 hours. You can request a new link here:
 
-{{root}}/sponsor/password-reset
+{{root}}/sponsor/create-account
 {{/monthly}}
 {{^monthly}}
 One-time sponsorship               {{amount}}
 {{/monthly}}
 
-If you have questions, please contact {{your_email}}.
+If you have questions, please email {{your_email}}.
 
 --
 {{your_name}}
