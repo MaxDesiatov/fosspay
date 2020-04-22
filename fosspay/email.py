@@ -62,6 +62,29 @@ def send_password_reset(user):
     smtp.quit()
 
 
+def send_new_account(user):
+    if _cfg("smtp-host") == "":
+        return
+    smtp = smtplib.SMTP(_cfg("smtp-host"), _cfgi("smtp-port"))
+    smtp.ehlo()
+    smtp.starttls()
+    smtp.login(_cfg("smtp-user"), _cfg("smtp-password"))
+    with open("emails/new-account") as f:
+        message = MIMEText(html.parser.HTMLParser().unescape(\
+            pystache.render(f.read(), {
+                "user": user,
+                "root": _cfg("protocol") + "://" + _cfg("domain"),
+                "your_name": _cfg("your-name"),
+                "your_email": _cfg("your-email")
+            })))
+    message['Subject'] = f"Create your {_cfg('site-name')} sponsorship account"
+    message['From'] = _cfg("smtp-from")
+    message['To'] = user.email
+    message['Date'] = format_datetime(localtime())
+    smtp.sendmail(_cfg("smtp-from"), [user.email], message.as_string())
+    smtp.quit()
+
+
 def send_declined(user, amount):
     if _cfg("smtp-host") == "":
         return

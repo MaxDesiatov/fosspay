@@ -5,14 +5,13 @@ Receipt:
 {{#monthly}}
 Monthly sponsorship                {{amount}}
 
-You can view and manage your sponsorship online and set a password for your
-sponsorship account here:
+You can view and manage your sponsorship online if you create a sponsorship account here:
 
 {{root}}/password-reset/{{user.password_reset}}
 
 This link expires in 24 hours. You can request a new link here:
 
-{{root}}/panel
+{{root}}/sponsor/password-reset
 {{/monthly}}
 {{^monthly}}
 One-time sponsorship               {{amount}}

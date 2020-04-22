@@ -5,9 +5,8 @@ from fosspay.objects import *
 from fosspay.database import db
 from fosspay.common import *
 from fosspay.config import _cfg, load_config
-from fosspay.email import send_thank_you, send_password_reset
-from fosspay.email import send_new_donation, send_cancellation_notice
-from fosspay.email import send_account_deleted
+from fosspay.email import send_password_reset, send_new_account, send_new_donation, \
+    send_cancellation_notice, send_account_deleted
 from fosspay.currency import currency
 
 import os
@@ -64,9 +63,9 @@ def admin():
         projects=projects,
         donations=donations,
         currency=currency,
-        one_times=lambda p: sum([
-            d.amount for d in p.donations if d.type == DonationType.one_time
-        ]),
+        one_times=lambda p: sum(
+            [d.amount for d in p.donations
+             if d.type == DonationType.one_time]),
         recurring=lambda p: sum([
             d.amount for d in p.donations
             if d.type == DonationType.monthly and d.active
@@ -143,25 +142,35 @@ def logout():
     return redirect(absolute_link("panel"))
 
 
-def issue_password_reset(email):
+def issue_password_reset(email, new_account=False):
     user = User.query.filter(User.email == email).first()
     if not user:
-        return render_template("reset.html",
-                               errors="No account found with this email.",
-                               email=email)
-    user.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
-    user.password_reset_expires = datetime.now() + timedelta(days=1)
-    send_password_reset(user)
+        return render_template(
+            "reset.html",
+            errors=f"No account found with this email: {email}.",
+            email=email)
+    if not new_account or \
+        (user.password_reset_expires and user.password_reset_expires < datetime.now()):
+        user.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
+        user.password_reset_expires = datetime.now() + timedelta(days=1)
+
+    if new_account:
+        send_new_account(user)
+    else:
+        send_password_reset(user)
     db.commit()
     return render_template("reset.html", done=True)
 
-@html.route("/create-account", methods=['GET'])
+
+@html.route("/create-account", methods=['GET', 'POST'])
 def create_account():
-    return render_template(
-        "reset.html", 
-        email=request.args.get('email'), 
-        first_reset=True
-    )
+    if request.method == "GET":
+        email = request.args.get('email')
+        return render_template("reset.html", email=email, first_reset=True)
+    elif request.method == "POST":
+        email = request.form.get('email')
+        return issue_password_reset(email, new_account=True)
+
 
 @html.route("/password-reset",
             methods=['GET', 'POST'],
@@ -217,8 +226,7 @@ def reset_password(token):
 def panel():
     return render_template(
         "panel.html",
-        all_donations=lambda u:
-        [d for d in u.donations],
+        all_donations=lambda u: [d for d in u.donations],
         one_times=lambda u:
         [d for d in u.donations if d.type == DonationType.one_time],
         recurring=lambda u: [

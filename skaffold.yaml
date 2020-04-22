@@ -1,9 +1,0 @@
-apiVersion: skaffold/v1beta12
-kind: Config
-build:
-  artifacts:
-    - image: 102409834926.dkr.ecr.us-east-1.amazonaws.com/sponsorship/fosspay
-deploy:
-  kubectl:
-    manifests:
-      - ./kube/fosspay.yaml

@@ -34,7 +34,7 @@
                 <input type="submit" value="Submit" class="btn btn-primary" />
             </form>
             {% else %}
-            <form action="{{root}}/password-reset" method="POST">
+            <form action="{{root}}/{{ 'create-account' if first_reset else 'password-reset' }}" method="POST">
                 <div class="form-group">
                     {% if email %}
                     <input class="form-control" type="text" name="email" value="{{ email }}"
