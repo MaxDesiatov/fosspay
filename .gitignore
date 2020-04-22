@@ -13,5 +13,5 @@ overrides/
 node_modules/
 .vscode/
 build/
-skaffold.yml
+skaffold.yaml
 .DS_Store
