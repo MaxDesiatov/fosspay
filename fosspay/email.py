@@ -77,7 +77,8 @@ def send_new_account(user):
                 "your_name": _cfg("your-name"),
                 "your_email": _cfg("your-email")
             })))
-    message['Subject'] = f"Create your {_cfg('site-name')} sponsorship account"
+    message[
+        'Subject'] = f"Set a password for your new {_cfg('site-name')} sponsorship account"
     message['From'] = _cfg("smtp-from")
     message['To'] = user.email
     message['Date'] = format_datetime(localtime())

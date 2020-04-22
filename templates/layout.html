@@ -1,35 +1,44 @@
 <!doctype html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" type="image/png" sizes="96x96" href="{{root}}/static/imgs/favicon-96x96.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="{{root}}/static/imgs/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="{{root}}/static/imgs/favicon-16x16.png" />
-        <link rel="apple-touch-icon" href="{{root}}/static/imgs/apple-icon-270x270.png" />
-        <link
-            rel="apple-touch-icon"
-            sizes="180x180"
-            href="{{root}}/static/imgs/apple-icon-180x180.png"
-        />
 
-        {% block title %}
-        <title>{{_cfg("your-name")}} – Support My Work</title>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" sizes="96x96" href="{{root}}/static/imgs/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{{root}}/static/imgs/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="{{root}}/static/imgs/favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="{{root}}/static/imgs/apple-icon-270x270.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{root}}/static/imgs/apple-icon-180x180.png" />
+
+    {% block title %}
+    <title>{{_cfg("your-name")}} – Support My Work</title>
+    {% endblock %}
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="{{root}}/static/styles/fonts.css">
+    <link rel="stylesheet" href="{{root}}/static/styles/style.css">
+    {% block styles %}{% endblock %}
+</head>
+
+<body>
+    {% block body %}
+    <div class="container">
+        {% block container %}
         {% endblock %}
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="{{root}}/static/styles/fonts.css">
-        <link rel="stylesheet" href="{{root}}/static/styles/style.css">
-        {% block styles %}{% endblock %}
-    </head>
-    <body>
-        {% block body %}
-        <div class="container">
-            {% block container %}
-            {% endblock %}
+    </div>
+    {% endblock %}
+    <hr />
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <h3>
+                    <a href="{{root}}">Return to the sponsorship page.</a>
+                </h3>
+            </div>
         </div>
-        {% endblock %}
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-        {% block scripts %}{% endblock %}
-    </body>
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
 </html>

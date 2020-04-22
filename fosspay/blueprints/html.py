@@ -159,14 +159,14 @@ def issue_password_reset(email, new_account=False):
     else:
         send_password_reset(user)
     db.commit()
-    return render_template("reset.html", done=True)
+    return render_template("reset.html", done=True, new_account=new_account)
 
 
 @html.route("/create-account", methods=['GET', 'POST'])
 def create_account():
     if request.method == "GET":
         email = request.args.get('email')
-        return render_template("reset.html", email=email, first_reset=True)
+        return render_template("reset.html", email=email, new_account=True)
     elif request.method == "POST":
         email = request.form.get('email')
         return issue_password_reset(email, new_account=True)

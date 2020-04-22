@@ -2,14 +2,18 @@
 {% block body %}
 <div class="well">
     <div class="container">
-        <h1>Manage your sponsorship at {{ _cfg("site-name") }}</h1>
+        <h1>Manage your sponsorship at <a href="{{root}}">{{ _cfg("site-name") }}</a></h1>
     </div>
 </div>
 <div class="container">
     <div class="row">
         <div class="col-md-6 col-md-offset-3">
-            {% if first_reset %}
-            <h1>Confirm your email to create a new account</h1>
+            {% if new_account %}
+            {% if done %}
+            <h1>Your sponsorship account has been created!</h1>
+            {% else %}
+            <h1>Confirm your email to create a new account.</h1>
+            {% endif %}
             {% else %}
             <h1>Reset Password</h1>
             {% endif %}
@@ -22,8 +26,17 @@
             {% endif %}
             {% if done %}
             <p>
+                {% if new_account %}
+                A confirmation email with a link that
+                allows you to set an account password should arrive shortly. If you need help, please contact
+                <a href="mailto:{{_cfg("your-email")}}">{{_cfg("your-email")}}</a>.
+                {% else %}
                 An email with a password reset link should arrive shortly. If you need help, please contact
                 <a href="mailto:{{_cfg("your-email")}}">{{_cfg("your-email")}}</a>.
+                {% endif %}
+            </p>
+            <p>
+                Please use <a href="{{root}}/login">the log in page</a> after you set the password.
             </p>
             {% elif token %}
             <form action="{{root}}/password-reset" method="POST">
@@ -34,7 +47,7 @@
                 <input type="submit" value="Submit" class="btn btn-primary" />
             </form>
             {% else %}
-            <form action="{{root}}/{{ 'create-account' if first_reset else 'password-reset' }}" method="POST">
+            <form action="{{root}}/{{ 'create-account' if new_account else 'password-reset' }}" method="POST">
                 <div class="form-group">
                     {% if email %}
                     <input class="form-control" type="text" name="email" value="{{ email }}"
