@@ -165,7 +165,6 @@ def issue_password_reset(email, is_new_account):
 
 
 def handle_password_reset(processed_request, is_new_account, token):
-    print("blah")
     if processed_request.method == "GET" and not token:
         email = request.args.get('email')
         return render_template("reset.html",
@@ -224,8 +223,6 @@ def handle_password_reset(processed_request, is_new_account, token):
             defaults={'token': None})
 @html.route("/create-account/<token>", methods=['GET', 'POST'])
 def create_account(token):
-    print("create_account")
-    print(f"token is {token}")
     return handle_password_reset(request, is_new_account=True, token=token)
 
 
@@ -234,7 +231,6 @@ def create_account(token):
             defaults={'token': None})
 @html.route("/password-reset/<token>", methods=['GET', 'POST'])
 def reset_password(token):
-    print("reset_password")
     return handle_password_reset(request, is_new_account=False, token=token)
 
 
