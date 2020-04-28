@@ -2,7 +2,7 @@ Thank you for your email subscription at {{root}}. You will receive updates abou
 
 You can create an account to review your sponsorship payments here:
 
-{{root}}/create-account
+{{root}}/create-account?email={{user.email}}
 
 If you'd like to unsubscribe from email updates, please follow this link:
 

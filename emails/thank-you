@@ -5,13 +5,21 @@ Receipt:
 {{#monthly}}
 Monthly sponsorship                {{amount}}
 
-You can view and manage your sponsorship online if you create a sponsorship account here:
+{{#is_existing_user}}
+According to our records, you already have a sponsorship account. 
+You can view and manage your sponsorship payments here:
+
+{{root}}/panel
+{{/is_existing_user}}
+{{^is_existing_user}}
+You can view and manage your sponsorship payments if you create a sponsorship account here:
 
 {{root}}/create-account/{{user.password_reset}}
 
 This link expires in 24 hours. You can request a new link here:
 
 {{root}}/sponsor/create-account
+{{/is_existing_user}}
 {{/monthly}}
 {{^monthly}}
 One-time sponsorship               {{amount}}

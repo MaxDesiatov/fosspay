@@ -81,6 +81,7 @@ class Donation(Base):
     hidden = Column(Boolean, server_default='f', nullable=False)
     session_id = Column(String, nullable=False)
     session_is_complete = Column(Boolean, nullable=False)
+    stripe_subscription_id = Column(String)
 
     def __init__(self,
                  user,
@@ -101,6 +102,7 @@ class Donation(Base):
         self.session_id = session_id
         self.session_is_complete = False
         self.project_id = project_id
+        self.stripe_subscription_id = None
 
     def __repr__(self):
         return "<Donation {} from {}: ${} ({})>".format(

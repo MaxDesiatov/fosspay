@@ -37,7 +37,7 @@ def send_subscription_confirmation(user):
     smtp.quit()
 
 
-def send_thank_you(donation):
+def send_thank_you(donation, is_existing_user):
     if _cfg("smtp-host") == "":
         return
     smtp = smtplib.SMTP(_cfg("smtp-host"), _cfgi("smtp-port"))
@@ -48,6 +48,7 @@ def send_thank_you(donation):
         message = MIMEText(html.parser.HTMLParser().unescape(\
             pystache.render(f.read(), {
                 "user": donation.user,
+                "is_existing_user": is_existing_user,
                 "root": _cfg("protocol") + "://" + _cfg("domain"),
                 "your_name": _cfg("your-name"),
                 "amount": currency.amount("{:.2f}".format(donation.amount / 100)),

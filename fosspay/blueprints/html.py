@@ -263,6 +263,16 @@ def cancel(id):
     return redirect(absolute_link("panel"))
 
 
+@html.route("/email-unsubscribe", methods=['GET'])
+def email_unsubscribe():
+    email = request.args.get('email')
+    user = User.query.filter(User.email == email).first()
+    if user:
+        user.email_updates = False
+        db.commit()
+    return render_template("email-unsubscribe.html", email=email)
+
+
 @html.route("/deleteAccount/<id>")
 @loginrequired
 def deleteAccount(id):

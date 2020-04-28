@@ -169,12 +169,10 @@ def checkout_session():
 
     args = {
         'payment_method_types': ['card'],
-        'success_url':
-        _cfg("protocol") + "://" + _cfg("domain") + '/?success=' +
-        (f'monthly&email={email}' if is_subscription else 'once'),
-        'cancel_url':
-        _cfg("protocol") + "://" + _cfg("domain"),
+        'cancel_url': _cfg("protocol") + "://" + _cfg("domain")
     }
+
+    is_existing_account = False
 
     user = None
     if email:
@@ -185,9 +183,18 @@ def checkout_session():
             user = User(email)
             user.stripe_customer = stripe.Customer.create(email=email).id
             db.add(user)
+        else:
+            is_existing_account = True
+
         user.is_public = is_public
         user.email_updates = email_updates
         args['customer'] = user.stripe_customer
+        args['customer_email'] = email
+
+    args['success_url'] = \
+        _cfg("protocol") + "://" + _cfg("domain") + '/?success=' + \
+        (f'monthly&email={email}' if is_subscription else 'once') + \
+        (f'&is_existing_account=true' if is_existing_account else '')
 
     amount = data['amount']
 
@@ -261,10 +268,18 @@ def webhook():
             # Matching donation not found
             return ('', 400)
 
+        if 'data' in event and 'object' in event['data'] and \
+            'subscription' in event['data']['object']:
+            donation.stripe_subscription_id = event['data']['object'][
+                'subscription']
+
         customer = stripe.Customer.retrieve(session['customer'])
 
         user = User.query.filter(User.email == customer.email).first()
+
+        is_existing_user = True
         if not user:
+            is_existing_user = False
             user = User(customer.email)
             user.is_public = False
             user.email_updates = False
@@ -282,7 +297,7 @@ def webhook():
             if donation.type == DonationType.monthly:
                 user.set_password_reset()
             db.commit()
-            send_thank_you(donation)
+            send_thank_you(donation, is_existing_user=is_existing_user)
         except Exception as e:
             print(e)
             return jsonify({'success': False})
