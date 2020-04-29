@@ -1,0 +1,4 @@
+Hi {{your_name}}!
+
+Unfortunately, {{user.email}} has chosen to delete their account with monthly sponsorships of
+{{amount}}.

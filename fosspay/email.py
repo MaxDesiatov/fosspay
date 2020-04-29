@@ -161,14 +161,14 @@ def send_new_donation(user, donation):
     smtp.quit()
 
 
-def send_cancellation_notice(user, donation):
+def send_admin_cancellation_notice(user, donation):
     if _cfg("smtp-host") == "":
         return
     smtp = smtplib.SMTP(_cfg("smtp-host"), _cfgi("smtp-port"))
     smtp.ehlo()
     smtp.starttls()
     smtp.login(_cfg("smtp-user"), _cfg("smtp-password"))
-    with open("emails/cancelled") as f:
+    with open("emails/admin-cancelled") as f:
         message = MIMEText(html.parser.HTMLParser().unescape(\
             pystache.render(f.read(), {
                 "user": user,
@@ -185,7 +185,60 @@ def send_cancellation_notice(user, donation):
     smtp.quit()
 
 
-def send_account_deleted(user):
+def send_cancellation_notice(user, donation):
+    if _cfg("smtp-host") == "":
+        return
+    smtp = smtplib.SMTP(_cfg("smtp-host"), _cfgi("smtp-port"))
+    smtp.ehlo()
+    smtp.starttls()
+    smtp.login(_cfg("smtp-user"), _cfg("smtp-password"))
+    with open("emails/cancelled") as f:
+        message = MIMEText(html.parser.HTMLParser().unescape(\
+            pystache.render(f.read(), {
+                "user": user,
+                "root": _cfg("protocol") + "://" + _cfg("domain"),
+                "your_name": _cfg("your-name"),
+                "your_email": _cfg("your-email"),
+                "amount": currency.amount("{:.2f}".format(
+                    donation.amount / 100)),
+            })))
+    message[
+        'Subject'] = f"Your monthly sponsorship at {_cfg('site-name')} has been cancelled"
+    message['From'] = _cfg("smtp-from")
+    message['To'] = user.email
+    message['Date'] = format_datetime(localtime())
+    smtp.sendmail(_cfg("smtp-from"), [_cfg('your-email')], message.as_string())
+    smtp.quit()
+
+
+def send_admin_account_deleted(user, total_amount):
+    if _cfg("smtp-host") == "":
+        return
+    smtp = smtplib.SMTP(_cfg("smtp-host"), _cfgi("smtp-port"))
+    smtp.ehlo()
+    smtp.starttls()
+    smtp.login(_cfg("smtp-user"), _cfg("smtp-password"))
+    with open("emails/admin-account-deleted") as f:
+        message = MIMEText(html.parser.HTMLParser().unescape(
+            pystache.render(
+                f.read(), {
+                    "user": user,
+                    "root": _cfg("protocol") + "://" + _cfg("domain"),
+                    "your_name": _cfg("your-name"),
+                    "your_email": _cfg("your-email"),
+                    "amount": currency.amount("{:.2f}".format(
+                        total_amount / 100))
+                })))
+    message[
+        'Subject'] = f"Your account at {_cfg('site-name')} has been deleted"
+    message['From'] = _cfg("smtp-from")
+    message['To'] = user.email
+    message['Date'] = format_datetime(localtime())
+    smtp.sendmail(_cfg("smtp-from"), [user.email], message.as_string())
+    smtp.quit()
+
+
+def send_account_deleted(user, had_active_monthly_sponsorship):
     if _cfg("smtp-host") == "":
         return
     smtp = smtplib.SMTP(_cfg("smtp-host"), _cfgi("smtp-port"))
@@ -196,9 +249,14 @@ def send_account_deleted(user):
         message = MIMEText(html.parser.HTMLParser().unescape(
             pystache.render(
                 f.read(), {
-                    "root": _cfg("protocol") + "://" + _cfg("domain"),
-                    "your_name": _cfg("your-name"),
-                    "your_email": _cfg("your-email")
+                    "root":
+                    _cfg("protocol") + "://" + _cfg("domain"),
+                    "your_name":
+                    _cfg("your-name"),
+                    "your_email":
+                    _cfg("your-email"),
+                    "had_active_monthly_sponsorship":
+                    had_active_monthly_sponsorship
                 })))
     message['Subject'] = "Your account has been deleted."
     message['From'] = _cfg("smtp-from")

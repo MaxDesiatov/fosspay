@@ -1,4 +1,13 @@
-Hi {{your_name}}!
+Dear Sponsor,
 
-Unfortunately, {{user.email}} has chosen to cancel their monthly sponsorship of
-{{amount}}.
+Your monthly {{amount}} sponsorship payment is now cancelled.
+
+Thank you for all the support you’ve provided. I hope that my blog and libraries 
+were helpful to you, and will continue to be useful in the future.
+
+You can always set up a new monthly sponsorship payment at {{root}}.
+
+If you have questions, please email {{your_email}}.
+
+--
+{{your_name}}

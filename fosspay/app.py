@@ -189,7 +189,9 @@ def checkout_session():
         user.is_public = is_public
         user.email_updates = email_updates
         args['customer'] = user.stripe_customer
-        args['customer_email'] = email
+
+        if not user.stripe_customer:
+            args['customer_email'] = email
 
     args['success_url'] = \
         _cfg("protocol") + "://" + _cfg("domain") + '/?success=' + \
@@ -285,6 +287,13 @@ def webhook():
             user.email_updates = False
             user.stripe_customer = customer.id
             db.add(user)
+
+        user_donations = Donation.query.filter(
+            Donation.user_id == user.id).filter(
+                Donation.type == DonationType.monthly)
+        if user_donations.count() == 1 and user_donations.first(
+        ).id == donation.id:
+            is_existing_user = False
 
         donation.user = user
         donation.session_is_complete = True

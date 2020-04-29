@@ -1,6 +1,9 @@
 Dear Sponsor,
 
 Your account at {{root}} has been deleted.
+{{#had_active_monthly_sponsorship}}
+All your active monthly sponsorship payments have been cancelled.
+{{/had_active_monthly_sponsorship}}
 
 Thank you for all the support you’ve provided. I hope that my blog and libraries 
 were helpful to you, and will continue to be useful in the future.

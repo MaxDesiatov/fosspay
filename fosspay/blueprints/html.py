@@ -6,7 +6,9 @@ from fosspay.database import db
 from fosspay.common import *
 from fosspay.config import _cfg, load_config
 from fosspay.email import send_password_reset, send_new_account, \
-    send_cancellation_notice, send_account_deleted
+    send_cancellation_notice, send_admin_cancellation_notice, send_account_deleted, \
+    send_admin_account_deleted
+
 from fosspay.currency import currency
 
 import os
@@ -258,7 +260,11 @@ def cancel(id):
     if donation.type != DonationType.monthly:
         abort(400)
     donation.active = False
+    if donation.stripe_subscription_id:
+        stripe.Subscription.delete(donation.stripe_subscription_id)
     db.commit()
+
+    send_admin_cancellation_notice(donation.user, donation)
     send_cancellation_notice(donation.user, donation)
     return redirect(absolute_link("panel"))
 
@@ -273,17 +279,38 @@ def email_unsubscribe():
     return render_template("email-unsubscribe.html", email=email)
 
 
-@html.route("/deleteAccount/<id>")
+@html.route("/delete-account/<id>")
 @loginrequired
-def deleteAccount(id):
+def delete_account(id):
     user = User.query.filter(User.id == id)
-    # remove user donation
+    user_object = user.first()
+
+    # remove user donations
+    had_active_monthly_sponsorship = False
+    total_amount = 0
+    for donation in Donation.query.filter(Donation.user_id == id).filter(
+            Donation.active == True):
+        total_amount += donation.amount
+        had_active_monthly_sponsorship = True
+        try:
+            if donation.stripe_subscription_id:
+                stripe.Subscription.delete(donation.stripe_subscription_id)
+        except Exception as e:
+            print(e)
+
     Donation.query.filter(Donation.user_id == id).delete()
-    # send warm mail
-    send_account_deleted(user.first())
+
+    # cancelling all subscriptions is the main thing, take care and commit more than once
+    db.commit()
+
+    send_admin_account_deleted(user_object, total_amount)
+    send_account_deleted(user_object, had_active_monthly_sponsorship)
+
     # remove user
     user.delete()
+    # final commit after user deletion
     db.commit()
+
     return redirect(absolute_link())
 
 
