@@ -52,6 +52,7 @@ export const Amount = ({
           <span className='input-group-addon'>{currency.symbol}</span>
           <input
             type='number'
+            min='1'
             value={isNaN(state.get('amount')) ? '' : state.get('amount')}
             onChange={(e) => {
               const value = parseInt(e.currentTarget.value);

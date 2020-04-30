@@ -45,7 +45,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:12.1-alpine
+          image: postgres:12.2-alpine
           resources:
             requests:
               memory: "192Mi"
@@ -54,6 +54,9 @@ spec:
           volumeMounts:
             - name: pg-data
               mountPath: /var/lib/postgresql/data
+          envFrom:
+            - secretRef:
+                name: postgres-secret
           env:
             - name: POSTGRES_USER
               value: app_admin
