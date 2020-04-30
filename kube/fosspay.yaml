@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: fosspay
-          image: gcr.io/sponsorship-263515/sponsorship:29.12.19
+          image: gcr.io/sponsorship-263515/sponsorship:20.04.30
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
