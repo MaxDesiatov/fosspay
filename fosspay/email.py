@@ -177,7 +177,8 @@ def send_admin_cancellation_notice(user, donation):
                 "amount": currency.amount("{:.2f}".format(
                     donation.amount / 100)),
             })))
-    message['Subject'] = "A monthly donation on fosspay has been cancelled"
+    message[
+        'Subject'] = f"A monthly donation at {_cfg('site-name')} has been cancelled"
     message['From'] = _cfg("smtp-from")
     message['To'] = f"{_cfg('your-name')} <{_cfg('your-email')}>"
     message['Date'] = format_datetime(localtime())
@@ -207,7 +208,7 @@ def send_cancellation_notice(user, donation):
     message['From'] = _cfg("smtp-from")
     message['To'] = user.email
     message['Date'] = format_datetime(localtime())
-    smtp.sendmail(_cfg("smtp-from"), [_cfg('your-email')], message.as_string())
+    smtp.sendmail(_cfg("smtp-from"), [user.email], message.as_string())
     smtp.quit()
 
 
@@ -234,7 +235,7 @@ def send_admin_account_deleted(user, total_amount):
     message['From'] = _cfg("smtp-from")
     message['To'] = user.email
     message['Date'] = format_datetime(localtime())
-    smtp.sendmail(_cfg("smtp-from"), [user.email], message.as_string())
+    smtp.sendmail(_cfg("smtp-from"), [_cfg('your-email')], message.as_string())
     smtp.quit()
 
 

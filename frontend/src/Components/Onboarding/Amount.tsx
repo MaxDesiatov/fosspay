@@ -60,7 +60,7 @@ export const Amount = ({
                 type: ActionType.setAmount,
                 payload: value,
               });
-              if (isNaN(value)) {
+              if (isNaN(value) || value < 1) {
                 dispatch({
                   type: ActionType.addValidation,
                   payload: 'amount',
