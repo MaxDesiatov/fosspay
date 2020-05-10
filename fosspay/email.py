@@ -233,7 +233,7 @@ def send_admin_account_deleted(user, total_amount):
     message[
         'Subject'] = f"Your account at {_cfg('site-name')} has been deleted"
     message['From'] = _cfg("smtp-from")
-    message['To'] = user.email
+    message['To'] = f"{_cfg('your-name')} <{_cfg('your-email')}>"
     message['Date'] = format_datetime(localtime())
     smtp.sendmail(_cfg("smtp-from"), [_cfg('your-email')], message.as_string())
     smtp.quit()

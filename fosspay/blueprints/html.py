@@ -150,8 +150,9 @@ def issue_password_reset(email, is_new_account):
         return render_template(
             "reset.html",
             errors=f"No account found with this email: {email}.",
-            email=email)
-    if not is_new_account or \
+            email=email,
+            is_new_account=is_new_account)
+    if not user.password_reset or not is_new_account or \
         (user.password_reset_expires and user.password_reset_expires < datetime.now()):
         user.password_reset = binascii.b2a_hex(os.urandom(20)).decode("utf-8")
         user.password_reset_expires = datetime.now() + timedelta(days=1)
@@ -311,6 +312,7 @@ def delete_account(id):
     # final commit after user deletion
     db.commit()
 
+    logout_user()
     return redirect(absolute_link())
 
 

@@ -18,7 +18,7 @@ You can view and manage your sponsorship payments if you create a sponsorship ac
 
 This link expires in 24 hours. You can request a new link here:
 
-{{root}}/sponsor/create-account
+{{root}}/create-account
 {{/is_existing_user}}
 {{/monthly}}
 {{^monthly}}

@@ -41,7 +41,7 @@ export function Submit<V, S extends EmailState<V>, A>({
             internet connectivity is not available. Please try again later.
           </h3>,
         );
-      }, 5 * 1000);
+      }, 60 * 1000);
     } else if (!isProcessing && timeout.current) {
       clearTimeout(timeout.current);
     }

@@ -15,7 +15,7 @@
 <div class="container">
     {% if not any(all_donations(user)) %}
     We currently have no sponsorship payments recorded for your account. You
-    can always make one at <a href="/sponsor">the sponsorship page</a>!
+    can always make one at <a href="{{root}}">the sponsorship page</a>!
     {% endif %}
     {% if any(recurring(user)) %}
     <h2>Monthly Sponsorship</h2>
