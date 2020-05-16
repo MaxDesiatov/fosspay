@@ -230,8 +230,7 @@ def send_admin_account_deleted(user, total_amount):
                     "amount": currency.amount("{:.2f}".format(
                         total_amount / 100))
                 })))
-    message[
-        'Subject'] = f"Your account at {_cfg('site-name')} has been deleted"
+    message['Subject'] = f"An account at {_cfg('site-name')} has been deleted"
     message['From'] = _cfg("smtp-from")
     message['To'] = f"{_cfg('your-name')} <{_cfg('your-email')}>"
     message['Date'] = format_datetime(localtime())
