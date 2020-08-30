@@ -32,8 +32,16 @@ class Bio extends React.Component {
         <ProfilePic />
         <Text>
           I'm <strong>Max Desiatov</strong>, a software consultant building
-          mobile and backend apps. My interests include coding in Swift and
-          TypeScript, product design, video games and music.
+          mobile and backend apps. I code in Swift and TypeScript, curate{' '}
+          <strong>
+            <a href='https://twitter.com/ServerSideSwift'>@ServerSideSwift</a>
+          </strong>{' '}
+          feed and co-maintain{' '}
+          <strong>
+            {' '}
+            <a href='https://swiftwasm.org'>SwiftWasm</a>{' '}
+          </strong>
+          .
         </Text>
       </Container>
     );

@@ -69,7 +69,13 @@ function reducer(
       return state.set('validationMessages', messages.remove(action.payload));
     }
     case ActionType.resetValidation:
-      return state.set('validationMessages', Set());
+      const messages = state.get('validationMessages');
+      if (messages.contains('amount')) {
+        // preserve the amount validation message, as the amount field is always there
+        return state.set('validationMessages', Set().add('amount'));
+      } else {
+        return state.set('validationMessages', Set());
+      }
     case ActionType.setEmailUpdates:
       return state.set('emailUpdates', action.payload);
   }
