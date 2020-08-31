@@ -32,16 +32,19 @@ class Bio extends React.Component {
         <ProfilePic />
         <Text>
           I'm <strong>Max Desiatov</strong>, a software consultant building
-          mobile and backend apps. I code in Swift and TypeScript, curate{' '}
+          mobile and backend apps. I curate{' '}
           <strong>
             <a href='https://twitter.com/ServerSideSwift'>@ServerSideSwift</a>
           </strong>{' '}
-          feed and co-maintain{' '}
+          feed, and co-maintain{' '}
           <strong>
-            {' '}
-            <a href='https://swiftwasm.org'>SwiftWasm</a>{' '}
-          </strong>
-          .
+            <a href='https://swiftwasm.org'>WebAssembly support for Swift</a>
+          </strong>{' '}
+          and a framework called{' '}
+          <strong>
+            <a href='https://tokamak.dev'>Tokamak</a>
+          </strong>{' '}
+          compatible with SwiftUI.
         </Text>
       </Container>
     );
